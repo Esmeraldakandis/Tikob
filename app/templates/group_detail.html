@@ -145,7 +145,7 @@
                     <ul class="mb-0">
                         {% for ghost in ghost_members %}
                         <li>
-                            👻 {{ ghost.ghost_name or 'Ghost Member #' + ghost.id|string }}
+                            👻 Placeholder Member ({{ ghost.user.username }})
                             <form method="POST" action="{{ url_for('remove_ghost_user', group_id=group.id, member_id=ghost.id) }}" class="d-inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <button type="submit" class="btn btn-sm btn-danger">Remove</button>
@@ -181,7 +181,7 @@
                     <tr class="{{ 'table-secondary' if stat.member.is_ghost else '' }}">
                         <td>
                             {% if stat.member.is_ghost %}
-                            👻 {{ stat.member.ghost_name or 'Ghost Member #' + stat.member.id|string }}
+                            👻 Placeholder ({{ stat.member.user.username }})
                             {% else %}
                             {{ stat.member.user.username }}
                             {% endif %}

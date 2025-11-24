@@ -11,6 +11,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(200), nullable=False)
     preferred_currency = db.Column(db.String(3), default='USD')
     notification_enabled = db.Column(db.Boolean, default=True)
+    is_ghost = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     memberships = db.relationship('Member', back_populates='user', cascade='all, delete-orphan')
@@ -20,6 +21,8 @@ class User(db.Model):
         self.password_hash = generate_password_hash(password)
     
     def check_password(self, password):
+        if self.is_ghost:
+            return False
         return check_password_hash(self.password_hash, password)
 
 class Tradition(db.Model):
@@ -55,15 +58,13 @@ class Group(db.Model):
 
 class Member(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     group_id = db.Column(db.Integer, db.ForeignKey('group.id'), nullable=False)
     role = db.Column(db.String(20), default='member')
     joined_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
     approval_status = db.Column(db.String(20), default='approved')
-    is_admin = db.Column(db.Boolean, default=False)
     is_ghost = db.Column(db.Boolean, default=False)
-    ghost_name = db.Column(db.String(100))
     reliability_score = db.Column(db.Integer, default=100)
     
     user = db.relationship('User', back_populates='memberships')

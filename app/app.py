@@ -792,6 +792,7 @@ def generate_financial_insights(profile):
 def add_ghost_user(group_id):
     """Add a ghost (placeholder) user to a group for balanced rotations"""
     from models import Member
+    import uuid
     
     group = Group.query.get_or_404(group_id)
     membership = Member.query.filter_by(user_id=session['user_id'], group_id=group_id).first()
@@ -801,14 +802,25 @@ def add_ghost_user(group_id):
         return redirect(url_for('group_detail', group_id=group_id))
     
     ghost_name = request.form.get('ghost_name', 'Placeholder')
+    ghost_uuid = str(uuid.uuid4())[:8]
+    
+    ghost_user = User(
+        username=f"ghost-{ghost_uuid}",
+        email=f"ghost-{ghost_uuid}@tikob.internal",
+        is_ghost=True,
+        notification_enabled=False
+    )
+    ghost_user.set_password(str(uuid.uuid4()))
+    
+    db.session.add(ghost_user)
+    db.session.flush()
     
     ghost_member = Member(
-        user_id=None,
+        user_id=ghost_user.id,
         group_id=group_id,
         role='member',
         is_active=True,
         is_ghost=True,
-        ghost_name=ghost_name,
         reliability_score=0,
         approval_status='approved'
     )
