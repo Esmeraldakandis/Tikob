@@ -48,9 +48,49 @@
     </div>
 </div>
 
+{% if membership.role == 'admin' %}
+{% set pending_members = group.members|selectattr('approval_status', 'equalto', 'pending')|list %}
+{% if pending_members %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-warning">
+            <h5>⚠️ Pending Approvals ({{ pending_members|length }})</h5>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Requested</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pending in pending_members %}
+                        <tr>
+                            <td>{{ pending.user.username }}</td>
+                            <td>{{ pending.joined_at.strftime('%b %d, %Y') }}</td>
+                            <td>
+                                <form method="POST" action="{{ url_for('approve_member', group_id=group.id, member_id=pending.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-success">✓ Approve</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('reject_member', group_id=group.id, member_id=pending.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-danger">✗ Reject</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endif %}
+
 <div class="row">
     <div class="col-12">
-        <h4 class="mb-3">Members ({{ member_stats|length }})</h4>
+        <h4 class="mb-3">Active Members ({{ member_stats|length }})</h4>
         <div class="table-responsive">
             <table class="table table-striped">
                 <thead>

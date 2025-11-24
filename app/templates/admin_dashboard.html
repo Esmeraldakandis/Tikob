@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - TiKòb{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="luxury-heading">Admin Dashboard</h2>
+        <p class="quote-text fst-italic">"{{ quote }}"</p>
+    </div>
+</div>
+
+{% if not admin_groups %}
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h5>No Admin Groups</h5>
+            <p>You are not an admin of any groups yet. Create a group to become an admin, or ask an existing admin to promote you.</p>
+            <a href="{{ url_for('create_group') }}" class="btn btn-primary">Create Your First Group</a>
+        </div>
+    </div>
+</div>
+{% else %}
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3 class="luxury-accent">{{ admin_groups|length }}</h3>
+                <p class="text-muted mb-0">Groups You Admin</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3 class="luxury-accent">{{ pending_approvals|length }}</h3>
+                <p class="text-muted mb-0">Pending Approvals</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary w-100 mb-2">View User Dashboard</a>
+                <form method="POST" action="{{ url_for('cleanup_receipts') }}" onsubmit="return confirm('Clean up receipts older than 90 days?');">
+                    <button type="submit" class="btn btn-outline-warning w-100">🗑️ Cleanup Old Receipts</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <h4 class="mb-3">Pending Member Approvals</h4>
+        {% if pending_approvals %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Group</th>
+                        <th>Request Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for approval in pending_approvals %}
+                    <tr>
+                        <td>
+                            <strong>{{ approval.user.username }}</strong><br>
+                            <small class="text-muted">{{ approval.user.email }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-primary">{{ approval.group.name }}</span><br>
+                            <small class="text-muted">Code: {{ approval.group.group_code }}</small>
+                        </td>
+                        <td>{{ approval.member.joined_at.strftime('%b %d, %Y at %I:%M %p') }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('approve_member', group_id=approval.group.id, member_id=approval.member.id) }}" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-success">✓ Approve</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('reject_member', group_id=approval.group.id, member_id=approval.member.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to reject this member?');">
+                                <button type="submit" class="btn btn-sm btn-danger">✗ Reject</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-success">
+            <h5>All Caught Up!</h5>
+            <p class="mb-0">No pending member approvals at this time. All requests have been processed.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <h4 class="mb-3">Your Admin Groups</h4>
+        <div class="row">
+            {% for admin_membership in admin_groups %}
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ admin_membership.group.name }}</h5>
+                        <p class="card-text">
+                            <strong>Group Code:</strong> <code>{{ admin_membership.group.group_code }}</code><br>
+                            <strong>Contribution:</strong> ${{ "%.2f"|format(admin_membership.group.contribution_amount) }} ({{ admin_membership.group.contribution_frequency }})<br>
+                            <strong>Members:</strong> {{ admin_membership.group.members|selectattr('is_active')|list|length }} active
+                        </p>
+                        <a href="{{ url_for('group_detail', group_id=admin_membership.group.id) }}" class="btn btn-primary btn-sm">View Group</a>
+                        <a href="{{ url_for('ledger', group_id=admin_membership.group.id) }}" class="btn btn-outline-primary btn-sm">View Ledger</a>
+                        <a href="{{ url_for('export_report', group_id=admin_membership.group.id) }}" class="btn btn-outline-secondary btn-sm">📊 Export CSV</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}

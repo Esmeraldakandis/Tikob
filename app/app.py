@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file, Response
+from flask_wtf.csrf import CSRFProtect
 from models import db, User, Group, Member, Transaction, Badge, UserBadge
 from werkzeug.utils import secure_filename
-from utils import convert_currency, get_random_quote, check_and_award_badges, generate_group_report_csv, get_financial_advice, seed_initial_data
+from utils import convert_currency, get_random_quote, check_and_award_badges, generate_group_report_csv, get_financial_advice, seed_initial_data, cleanup_old_receipts
 import os
 import secrets
 from datetime import datetime
@@ -18,7 +19,16 @@ app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+csrf = CSRFProtect(app)
 db.init_app(app)
+
+@app.after_request
+def set_security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    return response
 
 with app.app_context():
     db.create_all()
@@ -332,6 +342,32 @@ def unsubscribe(group_id):
     
     return redirect(url_for('dashboard'))
 
+@app.route('/admin-dashboard')
+@login_required
+def admin_dashboard():
+    admin_groups = Member.query.filter_by(user_id=session['user_id'], role='admin', is_active=True).all()
+    
+    pending_approvals = []
+    for admin_membership in admin_groups:
+        group = admin_membership.group
+        pending_members = Member.query.filter_by(
+            group_id=group.id,
+            approval_status='pending'
+        ).all()
+        
+        for pending in pending_members:
+            pending_approvals.append({
+                'member': pending,
+                'group': group,
+                'user': pending.user
+            })
+    
+    quote = get_random_quote()
+    return render_template('admin_dashboard.html', 
+                          pending_approvals=pending_approvals,
+                          admin_groups=admin_groups,
+                          quote=quote)
+
 @app.route('/group/<int:group_id>/approve-member/<int:member_id>', methods=['POST'])
 @login_required
 def approve_member(group_id, member_id):
@@ -347,7 +383,24 @@ def approve_member(group_id, member_id):
     db.session.commit()
     
     flash(f'{member.user.username} has been approved!', 'success')
-    return redirect(url_for('group_detail', group_id=group_id))
+    return redirect(request.referrer or url_for('admin_dashboard'))
+
+@app.route('/group/<int:group_id>/reject-member/<int:member_id>', methods=['POST'])
+@login_required
+def reject_member(group_id, member_id):
+    admin_membership = Member.query.filter_by(user_id=session['user_id'], group_id=group_id, role='admin').first()
+    
+    if not admin_membership:
+        flash('Only admins can reject members.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    member = Member.query.get_or_404(member_id)
+    username = member.user.username
+    db.session.delete(member)
+    db.session.commit()
+    
+    flash(f'{username}\'s request has been rejected.', 'info')
+    return redirect(request.referrer or url_for('admin_dashboard'))
 
 @app.route('/group/<int:group_id>/export-report')
 @login_required
@@ -392,6 +445,28 @@ def my_badges():
 def uploaded_file(filename):
     from flask import send_from_directory
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+@app.route('/admin/cleanup-receipts', methods=['POST'])
+@login_required
+def cleanup_receipts():
+    admin_groups = Member.query.filter_by(user_id=session['user_id'], role='admin', is_active=True).first()
+    
+    if not admin_groups:
+        flash('Only admins can perform cleanup operations.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    result = cleanup_old_receipts(app.config['UPLOAD_FOLDER'], retention_days=90)
+    
+    if result['deleted'] > 0:
+        flash(f'Cleanup completed: {result["deleted"]} old receipts removed.', 'success')
+    else:
+        flash('No old receipts to clean up.', 'info')
+    
+    if result['errors']:
+        for error in result['errors']:
+            flash(f'Error: {error}', 'warning')
+    
+    return redirect(url_for('admin_dashboard'))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

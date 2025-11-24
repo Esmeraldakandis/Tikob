@@ -1,6 +1,7 @@
 import csv
 import io
-from datetime import datetime
+import os
+from datetime import datetime, timedelta
 from models import db, Badge, UserBadge, FinancialTip, Transaction, Member
 import random
 
@@ -196,3 +197,43 @@ def seed_initial_data():
         db.session.add_all(tips)
     
     db.session.commit()
+
+def cleanup_old_receipts(upload_folder, retention_days=90):
+    if not os.path.exists(upload_folder):
+        return {'deleted': 0, 'errors': []}
+    
+    cutoff_date = datetime.utcnow() - timedelta(days=retention_days)
+    deleted_count = 0
+    errors = []
+    
+    active_receipts = set()
+    recent_transactions = Transaction.query.filter(
+        Transaction.receipt_filename.isnot(None),
+        Transaction.transaction_date >= cutoff_date
+    ).all()
+    for t in recent_transactions:
+        active_receipts.add(t.receipt_filename)
+    
+    try:
+        for filename in os.listdir(upload_folder):
+            filepath = os.path.join(upload_folder, filename)
+            
+            if not os.path.isfile(filepath):
+                continue
+            
+            file_modified_time = datetime.fromtimestamp(os.path.getmtime(filepath))
+            
+            if file_modified_time < cutoff_date and filename not in active_receipts:
+                try:
+                    os.remove(filepath)
+                    deleted_count += 1
+                except Exception as e:
+                    errors.append(f"Failed to delete {filename}: {str(e)}")
+    except Exception as e:
+        errors.append(f"Error scanning directory: {str(e)}")
+    
+    return {
+        'deleted': deleted_count,
+        'errors': errors,
+        'retention_days': retention_days
+    }
