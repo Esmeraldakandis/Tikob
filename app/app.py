@@ -1,8 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file, Response
 from flask_wtf.csrf import CSRFProtect
+from flask_migrate import Migrate
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from flask_talisman import Talisman
 from models import db, User, Group, Member, Transaction, Badge, UserBadge
 from werkzeug.utils import secure_filename
 from utils import convert_currency, get_random_quote, check_and_award_badges, generate_group_report_csv, get_financial_advice, seed_initial_data, cleanup_old_receipts
+from notifications import send_contribution_notification, send_approval_notification, send_badge_notification, send_payout_notification
 import os
 import secrets
 from datetime import datetime
@@ -12,7 +17,11 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SESSION_SECRET', 'dev-secret-key-change-in-production')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tikob.db'
+
+database_url = os.environ.get('DATABASE_URL')
+if database_url and database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///tikob.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
@@ -20,7 +29,19 @@ app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 csrf = CSRFProtect(app)
+migrate = Migrate(app, db)
 db.init_app(app)
+
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
+
+if os.environ.get('FLASK_ENV') == 'production':
+    Talisman(app, force_https=True, strict_transport_security=True, 
+             content_security_policy=None)
 
 @app.after_request
 def set_security_headers(response):
@@ -54,6 +75,7 @@ def index():
     return redirect(url_for('login'))
 
 @app.route('/signup', methods=['GET', 'POST'])
+@limiter.limit("5 per hour")
 def signup():
     if request.method == 'POST':
         username = request.form.get('username')
@@ -79,6 +101,7 @@ def signup():
     return render_template('signup.html')
 
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("10 per hour")
 def login():
     if request.method == 'POST':
         username = request.form.get('username')
@@ -321,9 +344,29 @@ def add_transaction(group_id):
     db.session.commit()
     
     member = Member.query.get(member_id)
+    
+    active_members = Member.query.filter_by(group_id=group_id, is_active=True).all()
+    for active_member in active_members:
+        if transaction_type == 'contribution':
+            send_contribution_notification(
+                active_member.user.email,
+                group.name,
+                amount,
+                member.user.username
+            )
+        else:
+            send_payout_notification(
+                active_member.user.email,
+                group.name,
+                amount,
+                member.user.username
+            )
+    
     awarded_badges = check_and_award_badges(member.user_id)
     if awarded_badges:
         badge_names = ', '.join([b.name for b in awarded_badges])
+        for badge in awarded_badges:
+            send_badge_notification(member.user.email, badge.name, badge.description)
         flash(f'Transaction recorded! 🎉 New badges earned: {badge_names}', 'success')
     else:
         flash('Transaction recorded successfully!', 'success')
@@ -422,6 +465,8 @@ def approve_member(group_id, member_id):
     member.is_active = True
     db.session.commit()
     
+    send_approval_notification(member.user.email, admin_membership.group.name, approved=True)
+    
     flash(f'{member.user.username} has been approved!', 'success')
     return redirect(request.referrer or url_for('admin_dashboard'))
 
@@ -436,8 +481,12 @@ def reject_member(group_id, member_id):
     
     member = Member.query.get_or_404(member_id)
     username = member.user.username
+    user_email = member.user.email
+    group_name = admin_membership.group.name
     db.session.delete(member)
     db.session.commit()
+    
+    send_approval_notification(user_email, group_name, approved=False)
     
     flash(f'{username}\'s request has been rejected.', 'info')
     return redirect(request.referrer or url_for('admin_dashboard'))
