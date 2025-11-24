@@ -1,0 +1,91 @@
+✅ ONE-PAGE REPLIT AGENT INSTRUCTIONS
+Build an animated badge reputation system with a premium UI/UX inspired by Framer, plus an interactive financial assessment survey and SUSU duration customization. The design must look professional, modern, and immersive—not basic or flat. Include the following:
+
+UI/UX Requirements
+
+Glassmorphism card design with blur and transparency.
+Gradient progress bar for reputation score.
+Premium typography (Inter or Poppins).
+Responsive layout for desktop and mobile.
+Metallic badge icons (gold, silver, platinum) for high-tier badges.
+Micro-interactions: hover scale effect on badges, smooth fade-in animations.
+Confetti animation when a new badge is earned.
+Animated glow around badges for premium feel.
+Immersive survey experience with animations, transitions, and progress indicators (users should feel “oooo ahhhh” when interacting).
+
+
+Animations
+
+Use Framer Motion for:
+
+Card fade-in and slide-up on load.
+Progress bar animated fill.
+Hover scale effect on badges.
+Smooth transitions between survey questions.
+
+
+Add subtle transitions for text and icons.
+Include confetti effect when unlocking badges.
+
+
+Badge System Logic
+
+Generate badges dynamically based on user data:
+
+Consistency Badge: Never missed a payment streak (e.g., 10+ weeks).
+High Roller Badge: Weekly contribution ≥ $350.
+Loyalty Badge: Active for 6+ months.
+Elite Badge: Reputation score ≥ 80.
+
+
+Display badges with names and icons.
+Reputation score should be numeric and visual (progress bar).
+
+
+Financial Assessment Survey
+
+Interactive, multi-step survey with animated transitions.
+Include progress bar and dynamic question flow.
+Questions should assess:
+
+Weekly contribution capability.
+Financial goals.
+Risk tolerance.
+
+
+Use immersive UI elements like:
+
+Animated sliders.
+Toggle switches.
+Gradient buttons with hover effects.
+
+
+Show a summary screen with recommendations after completion.
+
+
+SUSU Duration Customization
+
+Allow group creator to set SUSU duration:
+
+Options: 6 months, 12 months, or custom.
+
+
+Include a sleek date picker or dropdown with animated selection.
+Display duration clearly on the dashboard.
+
+
+Structure
+
+Main component: BadgeCard (shows profile, reputation score, badges).
+Survey component: FinancialAssessment (multi-step, animated).
+Utility: badgeGenerator function to assign badges based on user data.
+CSS: Glassmorphism background, gradient progress bar, hover effects.
+Icons: Store SVGs in /public/icons/ folder with metallic gradients.
+
+
+Enhancements
+
+Add animated glow around badges using CSS keyframes or Framer Motion.
+Include leaderboard view for top contributors.
+Ensure all animations are smooth and professional—avoid choppy transitions.
+Deploy on Replit with live preview enabled.
