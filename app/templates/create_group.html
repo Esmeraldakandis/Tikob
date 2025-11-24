@@ -3,105 +3,381 @@
 {% block title %}Create Group - TiKòb{% endblock %}
 
 {% block content %}
+
+<!-- Animated Background Particles -->
+<div class="particles-bg">
+    <div class="particle" style="width: 250px; height: 250px; left: 8%; top: 20%; animation-delay: 0s;"></div>
+    <div class="particle" style="width: 180px; height: 180px; right: 12%; top: 50%; animation-delay: 5s;"></div>
+</div>
+
 <div class="row justify-content-center">
     <div class="col-md-8 col-lg-6">
-        <div class="card shadow">
-            <div class="card-body">
-                <h2 class="card-title mb-4">Create New Savings Group</h2>
+        <div class="glass-card" data-aos="fade-up">
+            <h2 class="premium-heading mb-4">Create New Savings Group</h2>
+            
+            {% if traditions %}
+            <div class="alert-premium mb-4" data-aos="fade-up" data-aos-delay="100">
+                <span class="alert-icon">🌍</span>
+                <div>
+                    <strong>Cultural Traditions Available!</strong>
+                    <p class="mb-0 small">Choose from Susu, ROSCA, Tanda, Chama, Pardna, and more traditions below.</p>
+                </div>
+            </div>
+            {% endif %}
+            
+            <form method="POST" action="{{ url_for('create_group') }}" id="createGroupForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 
-                {% if not traditions %}
-                <div class="alert alert-success mb-4">
-                    <strong>🌍 Cultural Traditions Loaded!</strong>
-                    <p class="mb-0">Choose from Susu (Haiti), ROSCA, Tanda (Mexico), Chama (Kenya), Pardna (Jamaica), and more traditions below.</p>
+                <!-- Cultural Tradition Selection -->
+                {% if traditions %}
+                <div class="mb-4" data-aos="fade-up" data-aos-delay="150">
+                    <label for="tradition_id" class="form-label-premium">
+                        🌍 Cultural Savings Tradition
+                    </label>
+                    <select class="form-select-premium" id="tradition_id" name="tradition_id" onchange="updateTraditionInfo()">
+                        <option value="">Select a tradition (optional)</option>
+                        {% for tradition in traditions %}
+                        <option value="{{ tradition.id }}" 
+                                data-description="{{ tradition.description }}"
+                                data-region="{{ tradition.region }}"
+                                data-icon="{{ tradition.icon }}">
+                            {{ tradition.icon }} {{ tradition.display_name }} ({{ tradition.region }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <div id="tradition-info" class="tradition-info-card" style="display:none;">
+                        <div class="tradition-info-content">
+                            <span id="tradition-icon" class="tradition-icon-display"></span>
+                            <div>
+                                <p id="tradition-description" class="mb-1"></p>
+                                <p id="tradition-region" class="mb-0 text-muted small"></p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 {% endif %}
                 
-                <form method="POST" action="{{ url_for('create_group') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <!-- Group Name -->
+                <div class="mb-4" data-aos="fade-up" data-aos-delay="200">
+                    <label for="name" class="form-label-premium">Group Name</label>
+                    <input type="text" class="form-input-premium" id="name" name="name" placeholder="e.g., Family Circle" required>
+                </div>
+                
+                <!-- Description -->
+                <div class="mb-4" data-aos="fade-up" data-aos-delay="250">
+                    <label for="description" class="form-label-premium">Description</label>
+                    <textarea class="form-input-premium" id="description" name="description" rows="3" placeholder="Tell members what this group is about..."></textarea>
+                </div>
+                
+                <!-- Contribution Amount -->
+                <div class="mb-4" data-aos="fade-up" data-aos-delay="300">
+                    <label for="contribution_amount" class="form-label-premium">
+                        💰 Contribution Amount ($)
+                    </label>
+                    <input type="number" step="0.01" class="form-input-premium" id="contribution_amount" name="contribution_amount" placeholder="e.g., 100.00" required>
+                    <small class="form-hint">How much each member contributes per cycle</small>
+                </div>
+                
+                <!-- Contribution Frequency -->
+                <div class="mb-4" data-aos="fade-up" data-aos-delay="350">
+                    <label for="contribution_frequency" class="form-label-premium">
+                        📅 Contribution Frequency
+                    </label>
+                    <select class="form-select-premium" id="contribution_frequency" name="contribution_frequency" required>
+                        <option value="weekly">Weekly</option>
+                        <option value="bi-weekly">Bi-weekly (Every 2 weeks)</option>
+                        <option value="monthly" selected>Monthly</option>
+                    </select>
+                    <small class="form-hint">How often members contribute</small>
+                </div>
+                
+                <!-- SUSU Duration (NEW) -->
+                <div class="mb-4" data-aos="fade-up" data-aos-delay="400">
+                    <label for="duration_cycles" class="form-label-premium">
+                        ⏰ SUSU Duration (Cycles)
+                    </label>
+                    <div class="input-group-premium">
+                        <input type="number" class="form-input-premium" id="duration_cycles" name="duration_cycles" min="2" max="52" value="12" placeholder="12">
+                        <span class="input-group-text-premium">cycles</span>
+                    </div>
+                    <small class="form-hint">Number of payout rotations before the SUSU completes (typically matches member count)</small>
                     
-                    {% if traditions %}
-                    <div class="mb-4">
-                        <label for="tradition_id" class="form-label">
-                            <strong>🌍 Cultural Savings Tradition</strong>
-                        </label>
-                        <select class="form-select" id="tradition_id" name="tradition_id" onchange="updateTraditionDescription()">
-                            <option value="">Select a tradition (optional)</option>
-                            {% for tradition in traditions %}
-                            <option value="{{ tradition.id }}" 
-                                    data-description="{{ tradition.description }}"
-                                    data-region="{{ tradition.region }}"
-                                    data-icon="{{ tradition.icon }}">
-                                {{ tradition.icon }} {{ tradition.display_name }} ({{ tradition.region }})
-                            </option>
-                            {% endfor %}
-                        </select>
-                        <div id="tradition-info" class="mt-2 p-3 bg-light rounded" style="display:none;">
-                            <p id="tradition-description" class="mb-1 text-muted small"></p>
-                            <p id="tradition-region" class="mb-0 text-muted small"></p>
+                    <!-- Duration Preview -->
+                    <div class="duration-preview mt-3" id="durationPreview" style="display:none;">
+                        <div class="duration-preview-content">
+                            <span class="duration-icon">📊</span>
+                            <div>
+                                <div class="duration-text"><strong>Estimated Duration:</strong> <span id="estimatedDuration">-</span></div>
+                                <div class="duration-text small text-muted">Total Pool: $<span id="totalPool">-</span></div>
+                            </div>
                         </div>
                     </div>
-                    {% endif %}
-                    
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Group Name</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="contribution_amount" class="form-label">Contribution Amount ($)</label>
-                        <input type="number" step="0.01" class="form-control" id="contribution_amount" name="contribution_amount" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="contribution_frequency" class="form-label">Contribution Frequency</label>
-                        <select class="form-select" id="contribution_frequency" name="contribution_frequency" required>
-                            <option value="weekly">Weekly</option>
-                            <option value="bi-weekly">Bi-weekly</option>
-                            <option value="monthly">Monthly</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="require_admin_approval" name="require_admin_approval">
-                        <label class="form-check-label" for="require_admin_approval">
-                            Require admin approval for new members
+                </div>
+                
+                <!-- Admin Approval -->
+                <div class="mb-4" data-aos="fade-up" data-aos-delay="450">
+                    <div class="form-check-premium">
+                        <input type="checkbox" class="form-check-input-premium" id="require_admin_approval" name="require_admin_approval">
+                        <label class="form-check-label-premium" for="require_admin_approval">
+                            🔒 Require admin approval for new members
                         </label>
                     </div>
-                    
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">Create Group</button>
-                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
-                    </div>
-                </form>
+                </div>
                 
-                <script>
-                function updateTraditionDescription() {
-                    const select = document.getElementById('tradition_id');
-                    const selectedOption = select.options[select.selectedIndex];
-                    const infoDiv = document.getElementById('tradition-info');
-                    const descEl = document.getElementById('tradition-description');
-                    const regionEl = document.getElementById('tradition-region');
-                    
-                    if (selectedOption.value) {
-                        const description = selectedOption.dataset.description;
-                        const region = selectedOption.dataset.region;
-                        const icon = selectedOption.dataset.icon;
-                        
-                        descEl.textContent = description;
-                        regionEl.textContent = icon + ' Region: ' + region;
-                        infoDiv.style.display = 'block';
-                    } else {
-                        infoDiv.style.display = 'none';
-                    }
-                }
-                </script>
-            </div>
+                <!-- Action Buttons -->
+                <div class="d-grid gap-3" data-aos="fade-up" data-aos-delay="500">
+                    <button type="submit" class="btn-premium btn-lg">
+                        Create Group ✨
+                    </button>
+                    <a href="{{ url_for('dashboard') }}" class="btn-premium-outline btn-lg">
+                        Cancel
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+<style>
+/* Form Styles */
+.form-label-premium {
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+    color: white;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.form-input-premium, .form-select-premium {
+    width: 100%;
+    padding: 0.875rem 1.25rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.form-input-premium::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.form-input-premium:focus, .form-select-premium:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(102, 126, 234, 0.5);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+.form-select-premium option {
+    background: #1a1a2e;
+    color: white;
+}
+
+.form-hint {
+    display: block;
+    margin-top: 0.5rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.85rem;
+}
+
+.form-check-premium {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.form-check-premium:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.form-check-input-premium {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+}
+
+.form-check-label-premium {
+    color: white;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    margin: 0;
+}
+
+/* Input Group */
+.input-group-premium {
+    display: flex;
+    align-items: stretch;
+}
+
+.input-group-premium .form-input-premium {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.input-group-text-premium {
+    padding: 0.875rem 1.25rem;
+    background: rgba(102, 126, 234, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-left: none;
+    border-radius: 0 12px 12px 0;
+    color: rgba(255, 255, 255, 0.8);
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+}
+
+/* Alert Premium */
+.alert-premium {
+    display: flex;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: rgba(102, 126, 234, 0.15);
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 16px;
+    color: white;
+}
+
+.alert-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+/* Tradition Info Card */
+.tradition-info-card {
+    margin-top: 1rem;
+    padding: 1.25rem;
+    background: rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(102, 126, 234, 0.25);
+    border-radius: 12px;
+    animation: fadeSlideDown 0.3s ease;
+}
+
+.tradition-info-content {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.tradition-icon-display {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+}
+
+@keyframes fadeSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Duration Preview */
+.duration-preview {
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    animation: fadeSlideDown 0.3s ease;
+}
+
+.duration-preview-content {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.duration-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.duration-text {
+    color: white;
+    font-family: 'Inter', sans-serif;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Update tradition info
+    window.updateTraditionInfo = function() {
+        const select = document.getElementById('tradition_id');
+        const selectedOption = select.options[select.selectedIndex];
+        const infoDiv = document.getElementById('tradition-info');
+        const iconEl = document.getElementById('tradition-icon');
+        const descEl = document.getElementById('tradition-description');
+        const regionEl = document.getElementById('tradition-region');
+        
+        if (selectedOption.value) {
+            const description = selectedOption.dataset.description;
+            const region = selectedOption.dataset.region;
+            const icon = selectedOption.dataset.icon;
+            
+            iconEl.textContent = icon;
+            descEl.textContent = description;
+            regionEl.textContent = '📍 Region: ' + region;
+            infoDiv.style.display = 'block';
+        } else {
+            infoDiv.style.display = 'none';
+        }
+    };
+    
+    // Calculate duration preview
+    function updateDurationPreview() {
+        const amount = parseFloat(document.getElementById('contribution_amount').value) || 0;
+        const frequency = document.getElementById('contribution_frequency').value;
+        const cycles = parseInt(document.getElementById('duration_cycles').value) || 0;
+        
+        if (amount > 0 && cycles > 0) {
+            const preview = document.getElementById('durationPreview');
+            const durationText = document.getElementById('estimatedDuration');
+            const poolText = document.getElementById('totalPool');
+            
+            // Calculate duration
+            let duration = '';
+            if (frequency === 'weekly') {
+                const weeks = cycles;
+                const months = Math.floor(weeks / 4);
+                duration = months > 0 ? `${weeks} weeks (~${months} months)` : `${weeks} weeks`;
+            } else if (frequency === 'bi-weekly') {
+                const weeks = cycles * 2;
+                const months = Math.floor(weeks / 4);
+                duration = months > 0 ? `${weeks} weeks (~${months} months)` : `${weeks} weeks`;
+            } else if (frequency === 'monthly') {
+                duration = `${cycles} months`;
+            }
+            
+            // Estimate pool (assumes cycles = member count)
+            const estimatedPool = amount * cycles;
+            
+            durationText.textContent = duration;
+            poolText.textContent = estimatedPool.toFixed(2);
+            preview.style.display = 'block';
+        } else {
+            document.getElementById('durationPreview').style.display = 'none';
+        }
+    }
+    
+    // Add event listeners
+    document.getElementById('contribution_amount').addEventListener('input', updateDurationPreview);
+    document.getElementById('contribution_frequency').addEventListener('change', updateDurationPreview);
+    document.getElementById('duration_cycles').addEventListener('input', updateDurationPreview);
+    
+    // Initial update
+    updateDurationPreview();
+});
+</script>
+
 {% endblock %}

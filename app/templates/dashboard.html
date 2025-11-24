@@ -4,134 +4,356 @@
 
 {% block content %}
 
-<div class="motivational-quote">
-    <div class="proverb-text">{{ proverb.text }}</div>
+<!-- Animated Background Particles -->
+<div class="particles-bg">
+    <div class="particle" style="width: 300px; height: 300px; left: 10%; top: 20%; animation-delay: 0s;"></div>
+    <div class="particle" style="width: 200px; height: 200px; right: 15%; top: 60%; animation-delay: 5s;"></div>
+    <div class="particle" style="width: 150px; height: 150px; left: 70%; top: 30%; animation-delay: 8s;"></div>
+</div>
+
+<!-- Motivational Quote with Glassmorphism -->
+<div class="glass-card mb-4" data-aos="fade-down">
+    <div class="proverb-text premium-heading" style="font-size: 1.1rem; margin-bottom: 0.5rem;">{{ proverb.text }}</div>
     {% if language == 'en' and proverb.original %}
         <div class="proverb-original mt-2 text-muted" style="font-size: 0.9em;">— {{ proverb.original }}</div>
     {% elif language == 'ht' and proverb.translation %}
         <div class="proverb-translation mt-2 text-muted" style="font-size: 0.9em;">— {{ proverb.translation }}</div>
     {% endif %}
     {% if proverb.meaning %}
-        <div class="proverb-meaning mt-2" style="font-size: 0.85em; font-style: normal;">💡 {{ proverb.meaning }}</div>
+        <div class="proverb-meaning mt-2 premium-body" style="font-size: 0.85em; font-style: normal;">💡 {{ proverb.meaning }}</div>
     {% endif %}
 </div>
 
-<!-- Quick Actions Widget -->
-<div class="quick-actions">
-    <h5 class="text-white mb-3">⚡ Quick Actions</h5>
+<!-- Quick Actions Widget with Premium Design -->
+<div class="glass-card mb-4" data-aos="fade-up" data-aos-delay="100">
+    <h5 class="premium-subheading mb-3">⚡ Quick Actions</h5>
     <div class="row g-3">
         <div class="col-md-3 col-6">
-            <a href="{{ url_for('create_group') }}" class="quick-action-btn">
-                <span class="quick-action-icon">➕</span>
-                <span>Create Group</span>
+            <a href="{{ url_for('create_group') }}" class="quick-action-premium">
+                <span class="quick-action-icon-premium">➕</span>
+                <span class="premium-body">Create Group</span>
             </a>
         </div>
         <div class="col-md-3 col-6">
-            <a href="{{ url_for('join_group') }}" class="quick-action-btn">
-                <span class="quick-action-icon">🤝</span>
-                <span>Join Group</span>
+            <a href="{{ url_for('join_group') }}" class="quick-action-premium">
+                <span class="quick-action-icon-premium">🤝</span>
+                <span class="premium-body">Join Group</span>
             </a>
         </div>
         <div class="col-md-3 col-6">
-            <a href="{{ url_for('leaderboard') }}" class="quick-action-btn">
-                <span class="quick-action-icon">🏆</span>
-                <span>Leaderboard</span>
+            <a href="{{ url_for('leaderboard') }}" class="quick-action-premium">
+                <span class="quick-action-icon-premium">🏆</span>
+                <span class="premium-body">Leaderboard</span>
             </a>
         </div>
         <div class="col-md-3 col-6">
-            <a href="{{ url_for('my_badges') }}" class="quick-action-btn">
-                <span class="quick-action-icon">🎖️</span>
-                <span>My Badges</span>
+            <a href="{{ url_for('my_badges') }}" class="quick-action-premium">
+                <span class="quick-action-icon-premium">🎖️</span>
+                <span class="premium-body">My Badges</span>
             </a>
         </div>
     </div>
 </div>
 
-<div class="row mb-4">
-    <div class="col-md-8">
-        <h2 class="page-title">{% if language == 'ht' %}Gwoup Ekonomi Mwen{% else %}My Savings Groups{% endif %}</h2>
-    </div>
-</div>
-
+<!-- Stats Cards -->
 {% if advice %}
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card stat-card text-center">
-            <div class="card-body">
-                <div class="stat-value">${{ "%.2f"|format(advice.total_saved) }}</div>
-                <p class="mb-0 text-muted">{% if language == 'ht' %}Total Ekonomize{% else %}Total Saved{% endif %}</p>
-            </div>
+<div class="row mb-4" data-aos="fade-up" data-aos-delay="200">
+    <div class="col-md-4 mb-3">
+        <div class="glass-card stat-card-premium">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value-premium">${{ "%.2f"|format(advice.total_saved) }}</div>
+            <p class="stat-label-premium mb-0">{% if language == 'ht' %}Total Ekonomize{% else %}Total Saved{% endif %}</p>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card stat-card text-center">
-            <div class="card-body">
-                <div class="stat-value">{{ advice.groups_count }}</div>
-                <p class="mb-0 text-muted">{% if language == 'ht' %}Gwoup Aktif{% else %}Active Groups{% endif %}</p>
-            </div>
+    <div class="col-md-4 mb-3">
+        <div class="glass-card stat-card-premium">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value-premium">{{ advice.groups_count }}</div>
+            <p class="stat-label-premium mb-0">{% if language == 'ht' %}Gwoup Aktif{% else %}Active Groups{% endif %}</p>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card stat-card text-center">
-            <div class="card-body">
-                <div class="stat-value">{{ "%.0f"|format(advice.next_goal.progress) }}%</div>
-                <p class="mb-0 text-muted">{% if language == 'ht' %}Objektif{% else %}Next Goal{% endif %} (${{ advice.next_goal.amount }})</p>
-                <div class="progress mt-2" style="position: relative;">
-                    <div class="progress-bar-animated" style="width: {{ "%.0f"|format(advice.next_goal.progress) }}%"></div>
-                    <div class="progress-text">{{ "%.0f"|format(advice.next_goal.progress) }}%</div>
+    <div class="col-md-4 mb-3">
+        <div class="glass-card stat-card-premium">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-value-premium">{{ "%.0f"|format(advice.next_goal.progress) }}%</div>
+            <p class="stat-label-premium mb-0">{% if language == 'ht' %}Objektif{% else %}Goal Progress{% endif %}</p>
+            <div class="mt-3">
+                <div class="premium-progress-bar">
+                    <div class="premium-progress-fill" style="width: {{ "%.0f"|format(advice.next_goal.progress if advice.next_goal.progress <= 100 else 100) }}%"></div>
                 </div>
+                <small class="text-muted d-block mt-1">Target: ${{ advice.next_goal.amount }}</small>
             </div>
         </div>
     </div>
 </div>
 {% endif %}
 
+<!-- Page Title -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="premium-heading" data-aos="fade-right">{% if language == 'ht' %}Gwoup Ekonomi Mwen{% else %}My Savings Groups{% endif %}</h2>
+    </div>
+</div>
+
+<!-- Groups Grid -->
 <div class="row">
     <div class="col-12">        
         {% if groups_data %}
             <div class="row">
                 {% for data in groups_data %}
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100 shadow-sm">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ data.group.name }}</h5>
-                            <p class="card-text text-muted">{{ data.group.description or 'No description' }}</p>
-                            
-                            <ul class="list-unstyled">
-                                <li><strong>{% if language == 'ht' %}Kontribisyon{% else %}Contribution{% endif %}:</strong> ${{ "%.2f"|format(data.group.contribution_amount) }} / {{ data.group.contribution_frequency }}</li>
-                                <li><strong>{% if language == 'ht' %}Manm{% else %}Members{% endif %}:</strong> {{ data.members_count }}</li>
-                                <li><strong>{% if language == 'ht' %}Balans Gwoup{% else %}Group Balance{% endif %}:</strong> <span class="text-success">${{ "%.2f"|format(data.balance) }}</span></li>
-                                <li><strong>{% if language == 'ht' %}Wòl Ou{% else %}Your Role{% endif %}:</strong> <span class="badge bg-info">{{ data.membership.role }}</span></li>
-                            </ul>
-                            
-                            <!-- Progress Bar for Group Balance -->
-                            {% set target = data.group.contribution_amount * data.members_count * 10 %}
-                            {% set progress = (data.balance / target * 100) if target > 0 else 0 %}
-                            <div class="mb-3">
-                                <small class="text-muted">{% if language == 'ht' %}Pwogrè{% else %}Progress to ${{ "%.0f"|format(target) }}{% endif %}</small>
-                                <div class="progress" style="position: relative;">
-                                    <div class="progress-bar-animated" style="width: {{ "%.0f"|format(progress if progress <= 100 else 100) }}%"></div>
-                                    <div class="progress-text">{{ "%.0f"|format(progress if progress <= 100 else 100) }}%</div>
+                <div class="col-md-6 col-lg-4 mb-4" data-aos="zoom-in" data-aos-delay="{{ loop.index0 * 50 }}">
+                    <div class="glass-card group-card-premium h-100">
+                        <!-- Group Header with Tradition Icon -->
+                        <div class="group-header-premium">
+                            {% if data.group.tradition %}
+                                <span class="tradition-icon-large">{{ data.group.tradition.icon }}</span>
+                            {% else %}
+                                <span class="tradition-icon-large">💰</span>
+                            {% endif %}
+                            <h5 class="premium-subheading mb-1">{{ data.group.name }}</h5>
+                            <p class="text-muted small mb-0">{{ data.group.description or 'No description' }}</p>
+                        </div>
+                        
+                        <!-- Group Stats -->
+                        <div class="group-stats-premium">
+                            <div class="group-stat-item">
+                                <span class="stat-icon-small">💵</span>
+                                <div>
+                                    <div class="premium-body">${{ "%.2f"|format(data.group.contribution_amount) }}</div>
+                                    <small class="text-muted">per {{ data.group.contribution_frequency }}</small>
                                 </div>
                             </div>
-                            
-                            <div class="d-grid gap-2">
-                                <a href="{{ url_for('group_detail', group_id=data.group.id) }}" class="btn btn-primary btn-sm">View Details</a>
-                                <a href="{{ url_for('ledger', group_id=data.group.id) }}" class="btn btn-outline-secondary btn-sm">View Ledger</a>
+                            <div class="group-stat-item">
+                                <span class="stat-icon-small">👥</span>
+                                <div>
+                                    <div class="premium-body">{{ data.members_count }}</div>
+                                    <small class="text-muted">members</small>
+                                </div>
                             </div>
+                            <div class="group-stat-item">
+                                <span class="stat-icon-small">💎</span>
+                                <div>
+                                    <div class="premium-body text-success">${{ "%.2f"|format(data.balance) }}</div>
+                                    <small class="text-muted">group balance</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Role Badge -->
+                        <div class="mb-3">
+                            <span class="badge-premium badge-premium-{{ data.membership.role }}">
+                                {{ data.membership.role.upper() }}
+                            </span>
+                        </div>
+                        
+                        <!-- Progress Bar for Group Balance -->
+                        {% set target = data.group.contribution_amount * data.members_count * 10 %}
+                        {% set progress = (data.balance / target * 100) if target > 0 else 0 %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <small class="text-muted">{% if language == 'ht' %}Pwogrè{% else %}Progress{% endif %}</small>
+                                <small class="premium-body">${{ "%.0f"|format(target) }} target</small>
+                            </div>
+                            <div class="premium-progress-bar">
+                                <div class="premium-progress-fill" style="width: {{ "%.0f"|format(progress if progress <= 100 else 100) }}%"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('group_detail', group_id=data.group.id) }}" class="btn-premium btn-sm">
+                                View Details
+                            </a>
+                            <a href="{{ url_for('ledger', group_id=data.group.id) }}" class="btn-premium-outline btn-sm">
+                                View Ledger
+                            </a>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
         {% else %}
-            <div class="alert alert-info">
-                <h5>No groups yet</h5>
-                <p>You haven't joined any savings groups yet. Get started by creating a new group or joining an existing one.</p>
-                <a href="{{ url_for('create_group') }}" class="btn btn-primary">Create Group</a>
-                <a href="{{ url_for('join_group') }}" class="btn btn-outline-primary">Join Group</a>
+            <div class="glass-card text-center" data-aos="fade-up">
+                <div class="empty-state">
+                    <div class="empty-state-icon">💰</div>
+                    <h5 class="premium-subheading mb-2">No groups yet</h5>
+                    <p class="premium-body text-muted mb-4">You haven't joined any savings groups yet. Get started by creating a new group or joining an existing one.</p>
+                    <div class="d-flex gap-3 justify-content-center flex-wrap">
+                        <a href="{{ url_for('create_group') }}" class="btn-premium">Create Group</a>
+                        <a href="{{ url_for('join_group') }}" class="btn-premium-outline">Join Group</a>
+                    </div>
+                </div>
             </div>
         {% endif %}
     </div>
 </div>
+
+<style>
+/* Quick Actions Premium */
+.quick-action-premium {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.25rem 1rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    text-decoration: none;
+    color: white;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.quick-action-premium:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 40px rgba(102, 126, 234, 0.3);
+    color: white;
+}
+
+.quick-action-icon-premium {
+    font-size: 2rem;
+}
+
+/* Stat Card Premium */
+.stat-card-premium {
+    text-align: center;
+    padding: 2rem 1.5rem !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card-premium::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    animation: shimmer 2s infinite;
+}
+
+.stat-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+    animation: float 3s ease-in-out infinite;
+}
+
+.stat-value-premium {
+    font-size: 2.5rem;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label-premium {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Group Card Premium */
+.group-card-premium {
+    transition: all 0.3s ease;
+}
+
+.group-card-premium:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4);
+}
+
+.group-header-premium {
+    text-align: center;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+.tradition-icon-large {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+    animation: float 3s ease-in-out infinite;
+}
+
+.group-stats-premium {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.group-stat-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.group-stat-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(4px);
+}
+
+.stat-icon-small {
+    font-size: 1.5rem;
+}
+
+/* Badge Premium */
+.badge-premium {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.badge-premium-admin {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #000;
+}
+
+.badge-premium-member {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+/* Empty State */
+.empty-state {
+    padding: 3rem 2rem;
+}
+
+.empty-state-icon {
+    font-size: 5rem;
+    margin-bottom: 1.5rem;
+    animation: float 3s ease-in-out infinite;
+}
+
+@media (max-width: 768px) {
+    .stat-value-premium {
+        font-size: 2rem;
+    }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+    }
+    
+    .empty-state-icon {
+        font-size: 4rem;
+    }
+}
+</style>
+
 {% endblock %}

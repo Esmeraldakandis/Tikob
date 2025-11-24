@@ -3,101 +3,538 @@
 {% block title %}Leaderboard - TiKòb{% endblock %}
 
 {% block content %}
+
+<!-- Animated Background Particles -->
+<div class="particles-bg">
+    <div class="particle" style="width: 280px; height: 280px; left: 5%; top: 25%; animation-delay: 0s;"></div>
+    <div class="particle" style="width: 220px; height: 220px; right: 8%; top: 55%; animation-delay: 6s;"></div>
+    <div class="particle" style="width: 160px; height: 160px; left: 75%; top: 15%; animation-delay: 9s;"></div>
+</div>
+
 <div class="row mb-4">
-    <div class="col-12">
-        <h2 class="luxury-heading">🏆 Community Leaderboard</h2>
-        <p class="text-muted">Top savers in the TiKòb community</p>
+    <div class="col-12 text-center" data-aos="fade-down">
+        <h1 class="premium-heading" style="font-size: 3rem;">🏆 Community Leaderboard</h1>
+        <p class="premium-body text-muted">Top savers in the TiKòb community</p>
     </div>
 </div>
 
+<!-- User's Current Stats -->
 {% if current_user_xp %}
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card border-luxury">
-            <div class="card-body text-center">
-                <h3 class="luxury-accent">{{ rank_data.rank }}</h3>
-                <p class="text-muted mb-0">Your Rank</p>
-            </div>
+<div class="row mb-5" data-aos="fade-up" data-aos-delay="100">
+    <div class="col-md-4 mb-3">
+        <div class="glass-card stat-card-premium">
+            <div class="stat-icon">🏅</div>
+            <div class="stat-value-premium">{{ rank_data.rank }}</div>
+            <p class="stat-label-premium mb-0">Your Rank</p>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card border-luxury">
-            <div class="card-body text-center">
-                <h3 class="luxury-accent">Level {{ current_user_xp.current_level }}</h3>
-                <p class="text-muted mb-0">Current Level</p>
-            </div>
+    <div class="col-md-4 mb-3">
+        <div class="glass-card stat-card-premium">
+            <div class="stat-icon">⬆️</div>
+            <div class="stat-value-premium">{{ current_user_xp.current_level }}</div>
+            <p class="stat-label-premium mb-0">Current Level</p>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card border-luxury">
-            <div class="card-body text-center">
-                <h3 class="luxury-accent">{{ current_user_xp.current_streak }} Days</h3>
-                <p class="text-muted mb-0">Current Streak</p>
+    <div class="col-md-4 mb-3">
+        <div class="glass-card stat-card-premium">
+            <div class="stat-icon">🔥</div>
+            <div class="stat-value-premium">{{ current_user_xp.current_streak }}</div>
+            <p class="stat-label-premium mb-0">Day Streak</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Podium for Top 3 -->
+{% if top_users|length >= 3 %}
+<div class="podium-container" data-aos="zoom-in" data-aos-delay="200">
+    <div class="podium-wrapper">
+        <!-- 2nd Place -->
+        <div class="podium-place podium-second" data-aos="fade-up" data-aos-delay="300">
+            <div class="podium-avatar">
+                <div class="podium-rank-badge rank-2">🥈</div>
+                <div class="podium-user-icon">{{ top_users[1].user.username[0].upper() }}</div>
+            </div>
+            <div class="podium-info">
+                <div class="podium-username">{{ top_users[1].user.username }}</div>
+                <div class="podium-stats">
+                    <span class="podium-level">Lv {{ top_users[1].current_level }}</span>
+                    <span class="podium-xp">{{ top_users[1].total_xp }} XP</span>
+                </div>
+            </div>
+            <div class="podium-base podium-base-silver">
+                <div class="podium-number">2</div>
+            </div>
+        </div>
+        
+        <!-- 1st Place -->
+        <div class="podium-place podium-first" data-aos="fade-up" data-aos-delay="400">
+            <div class="podium-crown">👑</div>
+            <div class="podium-avatar">
+                <div class="podium-rank-badge rank-1">🥇</div>
+                <div class="podium-user-icon">{{ top_users[0].user.username[0].upper() }}</div>
+            </div>
+            <div class="podium-info">
+                <div class="podium-username">{{ top_users[0].user.username }}</div>
+                <div class="podium-stats">
+                    <span class="podium-level">Lv {{ top_users[0].current_level }}</span>
+                    <span class="podium-xp">{{ top_users[0].total_xp }} XP</span>
+                </div>
+            </div>
+            <div class="podium-base podium-base-gold">
+                <div class="podium-number">1</div>
+            </div>
+        </div>
+        
+        <!-- 3rd Place -->
+        <div class="podium-place podium-third" data-aos="fade-up" data-aos-delay="500">
+            <div class="podium-avatar">
+                <div class="podium-rank-badge rank-3">🥉</div>
+                <div class="podium-user-icon">{{ top_users[2].user.username[0].upper() }}</div>
+            </div>
+            <div class="podium-info">
+                <div class="podium-username">{{ top_users[2].user.username }}</div>
+                <div class="podium-stats">
+                    <span class="podium-level">Lv {{ top_users[2].current_level }}</span>
+                    <span class="podium-xp">{{ top_users[2].total_xp }} XP</span>
+                </div>
+            </div>
+            <div class="podium-base podium-base-bronze">
+                <div class="podium-number">3</div>
             </div>
         </div>
     </div>
 </div>
 {% endif %}
 
-<div class="row">
+<!-- Full Rankings List -->
+<div class="row mt-5">
     <div class="col-12">
-        <div class="card">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Rank</th>
-                                <th>User</th>
-                                <th>Level</th>
-                                <th>Total XP</th>
-                                <th>Streak</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for user_xp in top_users %}
-                            <tr {% if user_xp.user_id == session.user_id %}class="table-active"{% endif %}>
-                                <td><strong>{{ loop.index }}</strong></td>
-                                <td>
-                                    {{ user_xp.user.username }}
-                                    {% if loop.index == 1 %}
-                                        <span class="badge bg-warning">🥇</span>
-                                    {% elif loop.index == 2 %}
-                                        <span class="badge bg-secondary">🥈</span>
-                                    {% elif loop.index == 3 %}
-                                        <span class="badge" style="background-color: #CD7F32;">🥉</span>
-                                    {% endif %}
-                                </td>
-                                <td>Level {{ user_xp.current_level }}</td>
-                                <td>{{ user_xp.total_xp }} XP</td>
-                                <td>
-                                    {% if user_xp.current_streak > 0 %}
-                                        🔥 {{ user_xp.current_streak }} days
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+        <div class="glass-card" data-aos="fade-up" data-aos-delay="600">
+            <h4 class="premium-subheading mb-4">📊 Full Rankings</h4>
+            <div class="leaderboard-list">
+                {% for user_xp in top_users %}
+                <div class="leaderboard-item {% if user_xp.user_id == session.user_id %}leaderboard-item-current{% endif %}" 
+                     data-aos="fade-right" 
+                     data-aos-delay="{{ (loop.index0 * 30) }}">
+                    <div class="leaderboard-rank">
+                        <div class="rank-number rank-{{ loop.index }}">{{ loop.index }}</div>
+                    </div>
+                    <div class="leaderboard-user">
+                        <div class="leaderboard-avatar">{{ user_xp.user.username[0].upper() }}</div>
+                        <div class="leaderboard-user-info">
+                            <div class="leaderboard-username">
+                                {{ user_xp.user.username }}
+                                {% if loop.index == 1 %}
+                                    <span class="rank-medal">🥇</span>
+                                {% elif loop.index == 2 %}
+                                    <span class="rank-medal">🥈</span>
+                                {% elif loop.index == 3 %}
+                                    <span class="rank-medal">🥉</span>
+                                {% endif %}
+                                {% if user_xp.user_id == session.user_id %}
+                                    <span class="badge-premium-small">YOU</span>
+                                {% endif %}
+                            </div>
+                            <div class="leaderboard-level">Level {{ user_xp.current_level }}</div>
+                        </div>
+                    </div>
+                    <div class="leaderboard-stats">
+                        <div class="leaderboard-stat">
+                            <span class="stat-value">{{ user_xp.total_xp }}</span>
+                            <span class="stat-label">XP</span>
+                        </div>
+                        <div class="leaderboard-stat">
+                            <span class="stat-value">
+                                {% if user_xp.current_streak > 0 %}
+                                    🔥 {{ user_xp.current_streak }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </span>
+                            <span class="stat-label">Streak</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- XP Info Card -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="glass-card" data-aos="fade-up" data-aos-delay="700">
+            <h5 class="premium-subheading mb-3">💡 How to Earn XP</h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="xp-earn-item">
+                        <span class="xp-icon">🎯</span>
+                        <div>
+                            <div class="xp-action">Make a contribution</div>
+                            <div class="xp-reward">+10 XP</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="xp-earn-item">
+                        <span class="xp-icon">🔥</span>
+                        <div>
+                            <div class="xp-action">Daily streak bonus</div>
+                            <div class="xp-reward">+2-50 XP</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="xp-earn-item">
+                        <span class="xp-icon">🏆</span>
+                        <div>
+                            <div class="xp-action">Complete challenges</div>
+                            <div class="xp-reward">+100-500 XP</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="xp-earn-item">
+                        <span class="xp-icon">⬆️</span>
+                        <div>
+                            <div class="xp-action">Level up</div>
+                            <div class="xp-reward">Every 100 XP!</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="alert alert-info">
-            <h5>💡 How to Earn XP</h5>
-            <ul class="mb-0">
-                <li>🎯 Make a contribution: +10 XP</li>
-                <li>🔥 Daily streak bonus: +2-50 XP (based on streak length)</li>
-                <li>🏆 Complete challenges: +100-500 XP</li>
-                <li>⬆️ Level up every 100 XP!</li>
-            </ul>
-        </div>
-    </div>
-</div>
+<style>
+/* Podium Styles */
+.podium-container {
+    margin: 3rem 0;
+    padding: 2rem 0;
+}
+
+.podium-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 1rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.podium-place {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    max-width: 250px;
+    position: relative;
+}
+
+.podium-crown {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    animation: float 2s ease-in-out infinite;
+}
+
+.podium-avatar {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.podium-rank-badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    font-size: 2rem;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    padding: 0.25rem;
+    backdrop-filter: blur(10px);
+}
+
+.podium-user-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 600;
+    color: white;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.podium-first .podium-user-icon {
+    width: 100px;
+    height: 100px;
+    font-size: 2.5rem;
+    border: 4px solid #FFD700;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+}
+
+.podium-info {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.podium-username {
+    font-size: 1.1rem;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    color: white;
+    margin-bottom: 0.5rem;
+}
+
+.podium-first .podium-username {
+    font-size: 1.3rem;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.podium-stats {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    font-size: 0.85rem;
+}
+
+.podium-level, .podium-xp {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.podium-base {
+    width: 100%;
+    padding: 1.5rem 1rem;
+    border-radius: 12px 12px 0 0;
+    text-align: center;
+    position: relative;
+}
+
+.podium-base-gold {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    height: 180px;
+    box-shadow: 0 -10px 40px rgba(255, 215, 0, 0.4);
+}
+
+.podium-base-silver {
+    background: linear-gradient(135deg, #C0C0C0, #A8A8A8);
+    height: 140px;
+    box-shadow: 0 -10px 40px rgba(192, 192, 192, 0.4);
+}
+
+.podium-base-bronze {
+    background: linear-gradient(135deg, #CD7F32, #B87333);
+    height: 100px;
+    box-shadow: 0 -10px 40px rgba(205, 127, 50, 0.4);
+}
+
+.podium-number {
+    font-size: 3rem;
+    font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+    color: rgba(0, 0, 0, 0.3);
+    margin-top: 1rem;
+}
+
+/* Leaderboard List */
+.leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.leaderboard-item {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.25rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+}
+
+.leaderboard-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(8px);
+    border-color: rgba(102, 126, 234, 0.5);
+}
+
+.leaderboard-item-current {
+    background: rgba(102, 126, 234, 0.15);
+    border: 2px solid rgba(102, 126, 234, 0.5);
+}
+
+.leaderboard-rank {
+    flex-shrink: 0;
+}
+
+.rank-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+}
+
+.rank-1 {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #000;
+}
+
+.rank-2 {
+    background: linear-gradient(135deg, #C0C0C0, #A8A8A8);
+    color: #000;
+}
+
+.rank-3 {
+    background: linear-gradient(135deg, #CD7F32, #B87333);
+    color: #000;
+}
+
+.leaderboard-user {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+.leaderboard-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.leaderboard-user-info {
+    flex: 1;
+}
+
+.leaderboard-username {
+    font-size: 1.1rem;
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.rank-medal {
+    font-size: 1.25rem;
+}
+
+.badge-premium-small {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 12px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.leaderboard-level {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.leaderboard-stats {
+    display: flex;
+    gap: 2rem;
+}
+
+.leaderboard-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.leaderboard-stat .stat-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    color: white;
+}
+
+.leaderboard-stat .stat-label {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+}
+
+/* XP Earn Items */
+.xp-earn-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.xp-earn-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(4px);
+}
+
+.xp-icon {
+    font-size: 2rem;
+}
+
+.xp-action {
+    font-weight: 500;
+    color: white;
+}
+
+.xp-reward {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+@media (max-width: 768px) {
+    .podium-wrapper {
+        flex-direction: column-reverse;
+        align-items: center;
+    }
+    
+    .podium-place {
+        flex-direction: row;
+        max-width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .podium-base {
+        width: auto;
+        flex: 1;
+    }
+    
+    .leaderboard-stats {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+</style>
+
 {% endblock %}
