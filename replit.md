@@ -43,3 +43,33 @@ TiKòb is built with Python 3.11 and Flask 3.1.2. It uses SQLite with Flask-SQLA
 - **SendGrid**: Planned for email notifications (requires API key).
 - **Heroku PostgreSQL**: For production database (requires `DATABASE_URL`).
 - **Exchange Rate API**: For multi-currency support (requires API key, currently uses mock data).
+- **Plaid**: Bank account linking for personal money management (requires `PLAID_CLIENT_ID`, `PLAID_SECRET`).
+
+## Recent Updates - Phase 6 Completed (November 24, 2025)
+
+### 📊 Financial Survey & Recommendations
+- **9-question survey** capturing income, savings habits, goals, risk tolerance
+- **Personalized group recommendations** based on contribution comfort level
+- **Smart matching algorithm** connects users with compatible savings groups
+- **Financial insights engine** provides context-aware advice
+
+### 👻 Ghost User Management
+- **Placeholder members** for balanced rotation cycles
+- **Lightweight User accounts** with `is_ghost` flag
+- **Admin-only controls** for adding/removing ghost members
+- **Security**: Ghost users cannot login or receive notifications
+
+### 🌍 Cultural Theme Customization
+- **Tradition-specific UI** with gradient headers and color schemes
+- **Dynamic styling** based on selected tradition (Susu, ROSCA, Tanda, etc.)
+- **Cultural context** displayed throughout group pages
+
+### 💳 Plaid Bank Linking Foundation
+- **PlaidAccount & PersonalTransaction models** for financial tracking
+- **Money management dashboard** with income/expense analytics
+- **Bank linking UI** ready for Plaid API configuration
+- **Transaction syncing** infrastructure (requires API keys)
+
+**Routes Added**: `/financial-survey`, `/survey-results`, `/money-management`, `/plaid/create-link-token`, `/plaid/exchange-token`, `/group/<id>/add-ghost-user`, `/group/<id>/remove-ghost/<member_id>`
+
+**Production Note**: Requires Alembic migrations for schema changes before deploying to existing databases.
