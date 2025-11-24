@@ -1,105 +1,217 @@
 {% extends "base.html" %}
 
-{% block title %}My Badges & Achievements - TiKòb{% endblock %}
+{% block title %}Achievements & Reputation - TiKòb{% endblock %}
 
 {% block content %}
 
-<div class="motivational-quote">
-    <div class="proverb-text">{{ proverb.text }}</div>
-    {% if language == 'en' and proverb.original %}
-        <div class="proverb-original mt-2 text-muted" style="font-size: 0.9em;">— {{ proverb.original }}</div>
-    {% elif language == 'ht' and proverb.translation %}
-        <div class="proverb-translation mt-2 text-muted" style="font-size: 0.9em;">— {{ proverb.translation }}</div>
-    {% endif %}
+<!-- Animated Background Particles -->
+<div class="particles-bg">
+    <div class="particle" style="width: 200px; height: 200px; left: 10%; top: 20%; animation-delay: 0s;"></div>
+    <div class="particle" style="width: 150px; height: 150px; right: 15%; top: 60%; animation-delay: 3s;"></div>
+    <div class="particle" style="width: 100px; height: 100px; left: 70%; top: 10%; animation-delay: 6s;"></div>
 </div>
 
-<h2 class="page-title">🏆 My Achievements</h2>
+<h2 class="premium-heading text-center mb-4" data-aos="fade-down">
+    🏆 My Achievements & Reputation
+</h2>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">💰 Savings Progress</h5>
+<!-- Reputation Score Section -->
+<div class="glass-card-premium mb-5" data-aos="fade-up" data-aos-delay="100">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h3 class="premium-subheading mb-3">Your Reputation Score</h3>
+            <div class="reputation-score-container">
+                <div class="reputation-label">
+                    <span>Score</span>
+                    <span class="reputation-score">{{ reputation_score }}/100</span>
+                </div>
+                <div class="progress-premium">
+                    <div class="progress-bar-premium" style="width: {{ reputation_score }}%"></div>
+                </div>
             </div>
-            <div class="card-body">
-                <h3 class="text-primary">${{ "%.2f"|format(advice.total_saved) }}</h3>
-                <p class="mb-2">Total Saved Across All Groups</p>
-                
-                <div class="progress mb-3" style="height: 25px;">
-                    <div class="progress-bar bg-success" role="progressbar" 
-                         style="width: {{ advice.next_goal.progress }}%">
-                        {{ "%.0f"|format(advice.next_goal.progress) }}%
+            
+            <div class="mt-4">
+                <h5 class="premium-subheading" style="font-size: 1.1rem;">Reputation Breakdown</h5>
+                <div class="row mt-3">
+                    <div class="col-6 mb-3">
+                        <div class="stat-card hover-lift">
+                            <div class="stat-value">{{ consistency_score }}</div>
+                            <div class="stat-label">Consistency</div>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="stat-card hover-lift">
+                            <div class="stat-value">{{ activity_score }}</div>
+                            <div class="stat-label">Activity</div>
+                        </div>
                     </div>
                 </div>
-                
-                <p class="text-muted">Next Goal: ${{ advice.next_goal.amount }} (${{ "%.2f"|format(advice.next_goal.remaining) }} remaining)</p>
             </div>
         </div>
-    </div>
-    
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">💡 Financial Tips</h5>
-            </div>
-            <div class="card-body">
-                {% if advice.tips %}
-                    {% for tip in advice.tips %}
-                        <div class="mb-3">
-                            <h6 class="text-primary">{{ tip.title }}</h6>
-                            <p class="small mb-0">{{ tip.content }}</p>
-                        </div>
-                    {% endfor %}
-                {% endif %}
+        
+        <div class="col-md-6">
+            <div class="glass-card text-center">
+                <h5 class="premium-subheading mb-3">💰 Savings Progress</h5>
+                <h2 class="reputation-score mb-2">${{ "%.2f"|format(advice.total_saved) }}</h2>
+                <p class="text-muted mb-3">Total Saved Across All Groups</p>
+                
+                <div class="progress-premium">
+                    <div class="progress-bar-premium" style="width: {{ advice.next_goal.progress }}%"></div>
+                </div>
+                <p class="mt-2 small text-muted">
+                    Next Goal: ${{ advice.next_goal.amount }} 
+                    <br>(${{ "%.2f"|format(advice.next_goal.remaining) }} remaining)
+                </p>
             </div>
         </div>
     </div>
 </div>
 
-<h4 class="mb-3">🎖️ Earned Badges ({{ user_badges|length }})</h4>
+<!-- Earned Badges Section -->
+<h3 class="premium-subheading mb-4" data-aos="fade-up">
+    🎖️ Earned Badges ({{ user_badges|length }})
+</h3>
 
-<div class="row mb-5">
+<div class="badge-container" data-aos="fade-up" data-aos-delay="200">
     {% for user_badge in user_badges %}
-    <div class="col-md-3 mb-3">
-        <div class="card text-center shadow">
-            <div class="card-body">
-                <div style="font-size: 3rem;">{{ user_badge.badge.icon }}</div>
-                <h6 class="card-title mt-2">{{ user_badge.badge.name }}</h6>
-                <p class="card-text small text-muted">{{ user_badge.badge.description }}</p>
-                <p class="small text-success">Earned: {{ user_badge.earned_at.strftime('%b %d, %Y') }}</p>
-            </div>
+    <div class="badge-card earned hover-scale glow-effect
+        {% if user_badge.badge.name == 'Elite Contributor' %}badge-elite
+        {% elif 'Gold' in user_badge.badge.name or 'High Roller' in user_badge.badge.name %}badge-gold
+        {% elif 'Platinum' in user_badge.badge.name or 'Loyalty' in user_badge.badge.name %}badge-platinum
+        {% else %}badge-silver{% endif %}">
+        
+        <div class="badge-icon">
+            {{ user_badge.badge.icon }}
+        </div>
+        
+        <div class="badge-name">{{ user_badge.badge.name }}</div>
+        <div class="badge-description">{{ user_badge.badge.description }}</div>
+        <div class="mt-3 text-success small">
+            ✅ Earned: {{ user_badge.earned_at.strftime('%b %d, %Y') }}
         </div>
     </div>
     {% endfor %}
+    
+    {% if user_badges|length == 0 %}
+    <div class="col-12">
+        <div class="glass-card text-center">
+            <p class="text-muted mb-0">
+                🎯 Keep contributing to earn your first badge!
+            </p>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
-<h4 class="mb-3">🔒 Locked Badges</h4>
+<!-- Locked Badges Section -->
+<h3 class="premium-subheading mb-4 mt-5" data-aos="fade-up">
+    🔒 Available Badges
+</h3>
 
-<div class="row">
+<div class="badge-container" data-aos="fade-up" data-aos-delay="300">
     {% for badge in all_badges %}
         {% if badge.id not in earned_badge_ids %}
-        <div class="col-md-3 mb-3">
-            <div class="card text-center" style="opacity: 0.6;">
-                <div class="card-body">
-                    <div style="font-size: 3rem; filter: grayscale(100%);">{{ badge.icon }}</div>
-                    <h6 class="card-title mt-2">{{ badge.name }}</h6>
-                    <p class="card-text small text-muted">{{ badge.description }}</p>
-                    <p class="small">
-                        {% if badge.criteria_type == 'total_contributions' %}
-                            Requirement: Save ${{ badge.criteria_value }}
-                        {% elif badge.criteria_type == 'group_count' %}
-                            Requirement: Join {{ badge.criteria_value }} groups
-                        {% endif %}
-                    </p>
-                </div>
+        <div class="badge-card badge-locked hover-scale
+            {% if badge.name == 'Elite Contributor' %}badge-elite
+            {% elif 'Gold' in badge.name or 'High Roller' in badge.name %}badge-gold
+            {% elif 'Platinum' in badge.name or 'Loyalty' in badge.name %}badge-platinum
+            {% else %}badge-silver{% endif %}">
+            
+            <div class="badge-icon">
+                {{ badge.icon }}
+            </div>
+            
+            <div class="badge-name">{{ badge.name }}</div>
+            <div class="badge-description">{{ badge.description }}</div>
+            <div class="mt-3 text-warning small">
+                {% if badge.criteria_type == 'total_contributions' %}
+                    🎯 Save ${{ badge.criteria_value }}
+                {% elif badge.criteria_type == 'group_count' %}
+                    🎯 Join {{ badge.criteria_value }} groups
+                {% elif badge.criteria_type == 'streak' %}
+                    🎯 {{ badge.criteria_value }} week streak
+                {% elif badge.criteria_type == 'high_contribution' %}
+                    🎯 Weekly contribution ≥ ${{ badge.criteria_value }}
+                {% elif badge.criteria_type == 'loyalty' %}
+                    🎯 Active for {{ badge.criteria_value }} months
+                {% elif badge.criteria_type == 'reputation' %}
+                    🎯 Reputation score ≥ {{ badge.criteria_value }}
+                {% else %}
+                    🎯 Complete requirement to unlock
+                {% endif %}
             </div>
         </div>
         {% endif %}
     {% endfor %}
 </div>
 
-<div class="text-center mt-4">
-    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+<!-- Financial Tips Section -->
+<div class="glass-card-premium mt-5" data-aos="fade-up" data-aos-delay="400">
+    <h4 class="premium-subheading mb-4">💡 Personalized Financial Tips</h4>
+    <div class="row">
+        {% if advice.tips %}
+            {% for tip in advice.tips %}
+            <div class="col-md-6 mb-3">
+                <div class="glass-card hover-lift">
+                    <h6 class="premium-subheading" style="font-size: 1rem; margin-bottom: 0.75rem;">
+                        {{ tip.title }}
+                    </h6>
+                    <p class="premium-body small mb-0 text-muted">
+                        {{ tip.content }}
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <p class="text-muted mb-0">Keep contributing to unlock personalized tips!</p>
+            </div>
+        {% endif %}
+    </div>
 </div>
+
+<div class="text-center mt-5">
+    <a href="{{ url_for('dashboard') }}" class="btn-premium hover-scale">
+        ← Back to Dashboard
+    </a>
+</div>
+
+<script>
+// Confetti celebration for newly earned badges
+{% if newly_earned_badge %}
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#FFD700', '#FFA500', '#667eea', '#764ba2']
+        });
+        
+        // Second burst
+        setTimeout(function() {
+            confetti({
+                particleCount: 50,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0 },
+                colors: ['#FFD700', '#FFA500', '#667eea', '#764ba2']
+            });
+        }, 250);
+        
+        // Third burst
+        setTimeout(function() {
+            confetti({
+                particleCount: 50,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1 },
+                colors: ['#FFD700', '#FFA500', '#667eea', '#764ba2']
+            });
+        }, 400);
+    }, 500);
+});
+{% endif %}
+</script>
 
 {% endblock %}

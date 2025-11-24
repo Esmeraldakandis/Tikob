@@ -552,6 +552,42 @@ def export_report(group_id):
         headers={'Content-Disposition': f'attachment;filename={filename}'}
     )
 
+def calculate_reputation_score(user_id):
+    """Calculate user reputation score (0-100) based on activity"""
+    user = User.query.get(user_id)
+    if not user:
+        return {'total': 0, 'consistency': 0, 'activity': 0}
+    
+    memberships = Member.query.filter_by(user_id=user_id, is_active=True, is_ghost=False).all()
+    
+    if not memberships:
+        return {'total': 0, 'consistency': 0, 'activity': 0}
+    
+    consistency_score = 0
+    activity_score = 0
+    
+    for membership in memberships:
+        if membership.reliability_score:
+            consistency_score += membership.reliability_score
+    
+    consistency_score = min(100, consistency_score // len(memberships))
+    
+    member_ids = [m.id for m in memberships]
+    total_contributions = Transaction.query.filter(
+        Transaction.member_id.in_(member_ids),
+        Transaction.transaction_type == 'contribution'
+    ).count()
+    
+    activity_score = min(100, total_contributions * 5)
+    
+    total_score = int((consistency_score * 0.6) + (activity_score * 0.4))
+    
+    return {
+        'total': total_score,
+        'consistency': consistency_score,
+        'activity': activity_score
+    }
+
 @app.route('/my-badges')
 @login_required
 def my_badges():
@@ -561,17 +597,25 @@ def my_badges():
     
     earned_badge_ids = [ub.badge_id for ub in user_badges]
     
+    reputation_data = calculate_reputation_score(user.id)
+    
     advice = get_financial_advice(user.id)
     language = session.get('language', 'en')
     proverb = get_random_proverb(language)
+    
+    newly_earned = request.args.get('new_badge', False)
     
     return render_template('badges.html', 
                           user_badges=user_badges,
                           all_badges=all_badges,
                           earned_badge_ids=earned_badge_ids,
+                          reputation_score=reputation_data['total'],
+                          consistency_score=reputation_data['consistency'],
+                          activity_score=reputation_data['activity'],
                           advice=advice,
                           proverb=proverb,
-                          language=language)
+                          language=language,
+                          newly_earned_badge=newly_earned)
 
 @app.route('/uploads/receipts/<filename>')
 @login_required
