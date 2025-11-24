@@ -59,6 +59,11 @@ def set_security_headers(response):
 with app.app_context():
     db.create_all()
     seed_initial_data()
+    from traditions_data import seed_traditions
+    try:
+        seed_traditions()
+    except Exception as e:
+        print(f"Note: Traditions already seeded or error: {e}")
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -199,8 +204,18 @@ def create_group():
         description = request.form.get('description')
         contribution_amount = float(request.form.get('contribution_amount'))
         contribution_frequency = request.form.get('contribution_frequency')
+        tradition_id = request.form.get('tradition_id')
+        require_approval = request.form.get('require_admin_approval') == 'on'
         
         group_code = secrets.token_hex(4).upper()
+        
+        tradition = None
+        cultural_theme = 'default'
+        if tradition_id and tradition_id != '':
+            from models import Tradition
+            tradition = Tradition.query.get(int(tradition_id))
+            if tradition:
+                cultural_theme = tradition.cultural_theme
         
         group = Group(
             name=name,
@@ -208,7 +223,10 @@ def create_group():
             contribution_amount=contribution_amount,
             contribution_frequency=contribution_frequency,
             group_code=group_code,
-            created_by=session['user_id']
+            created_by=session['user_id'],
+            tradition_id=int(tradition_id) if tradition_id and tradition_id != '' else None,
+            cultural_theme=cultural_theme,
+            require_admin_approval=require_approval
         )
         db.session.add(group)
         db.session.flush()
@@ -217,10 +235,13 @@ def create_group():
         db.session.add(member)
         db.session.commit()
         
-        flash(f'Group created successfully! Group code: {group_code}', 'success')
+        tradition_name = tradition.display_name if tradition else 'Savings Group'
+        flash(f'{tradition_name} created successfully! Group code: {group_code}', 'success')
         return redirect(url_for('group_detail', group_id=group.id))
     
-    return render_template('create_group.html')
+    from models import Tradition
+    traditions = Tradition.query.all()
+    return render_template('create_group.html', traditions=traditions)
 
 @app.route('/join-group', methods=['GET', 'POST'])
 @login_required
@@ -618,6 +639,18 @@ def initialize_beta_features():
     
     flash('Beta features initialized! Check out the leaderboard and your XP progress.', 'success')
     return redirect(url_for('dashboard'))
+
+@app.route('/initialize-traditions', methods=['POST'])
+@login_required
+def initialize_traditions():
+    """Initialize cultural savings traditions in the database"""
+    from traditions_data import seed_traditions
+    try:
+        seed_traditions()
+        flash('Cultural traditions initialized successfully! Create a group and choose your tradition.', 'success')
+    except Exception as e:
+        flash(f'Error initializing traditions: {str(e)}', 'danger')
+    return redirect(url_for('create_group'))
 
 @app.route('/set-language/<lang>')
 @login_required

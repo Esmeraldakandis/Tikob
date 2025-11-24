@@ -22,6 +22,18 @@ class User(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+class Tradition(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False, unique=True)
+    display_name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    region = db.Column(db.String(100))
+    cultural_theme = db.Column(db.String(50))
+    icon = db.Column(db.String(10))
+    is_custom = db.Column(db.Boolean, default=False)
+    
+    groups = db.relationship('Group', back_populates='tradition')
+
 class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -33,10 +45,13 @@ class Group(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     require_admin_approval = db.Column(db.Boolean, default=False)
+    tradition_id = db.Column(db.Integer, db.ForeignKey('tradition.id'))
+    cultural_theme = db.Column(db.String(50), default='default')
     
     members = db.relationship('Member', back_populates='group', cascade='all, delete-orphan')
     transactions = db.relationship('Transaction', back_populates='group', cascade='all, delete-orphan')
     creator = db.relationship('User', foreign_keys=[created_by])
+    tradition = db.relationship('Tradition', back_populates='groups')
 
 class Member(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -46,6 +61,8 @@ class Member(db.Model):
     joined_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
     approval_status = db.Column(db.String(20), default='approved')
+    is_ghost = db.Column(db.Boolean, default=False)
+    reliability_score = db.Column(db.Integer, default=100)
     
     user = db.relationship('User', back_populates='memberships')
     group = db.relationship('Group', back_populates='members')
@@ -174,3 +191,20 @@ class PersonalizedAdvice(db.Model):
     displayed = db.Column(db.Boolean, default=False)
     
     user = db.relationship('User', backref='personalized_advice')
+
+class UserFinancialProfile(db.Model):
+    __tablename__ = 'user_financial_profile'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    income_range = db.Column(db.String(50))
+    savings_habit = db.Column(db.String(50))
+    financial_goal = db.Column(db.String(100))
+    risk_tolerance = db.Column(db.String(20))
+    employment_status = db.Column(db.String(50))
+    dependents = db.Column(db.Integer, default=0)
+    has_emergency_fund = db.Column(db.Boolean, default=False)
+    preferred_group_size = db.Column(db.String(20))
+    contribution_comfort_level = db.Column(db.String(50))
+    survey_completed_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', backref=db.backref('financial_profile', uselist=False))

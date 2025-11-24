@@ -9,8 +9,39 @@
             <div class="card-body">
                 <h2 class="card-title mb-4">Create New Savings Group</h2>
                 
+                {% if not traditions %}
+                <div class="alert alert-success mb-4">
+                    <strong>🌍 Cultural Traditions Loaded!</strong>
+                    <p class="mb-0">Choose from Susu (Haiti), ROSCA, Tanda (Mexico), Chama (Kenya), Pardna (Jamaica), and more traditions below.</p>
+                </div>
+                {% endif %}
+                
                 <form method="POST" action="{{ url_for('create_group') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    
+                    {% if traditions %}
+                    <div class="mb-4">
+                        <label for="tradition_id" class="form-label">
+                            <strong>🌍 Cultural Savings Tradition</strong>
+                        </label>
+                        <select class="form-select" id="tradition_id" name="tradition_id" onchange="updateTraditionDescription()">
+                            <option value="">Select a tradition (optional)</option>
+                            {% for tradition in traditions %}
+                            <option value="{{ tradition.id }}" 
+                                    data-description="{{ tradition.description }}"
+                                    data-region="{{ tradition.region }}"
+                                    data-icon="{{ tradition.icon }}">
+                                {{ tradition.icon }} {{ tradition.display_name }} ({{ tradition.region }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div id="tradition-info" class="mt-2 p-3 bg-light rounded" style="display:none;">
+                            <p id="tradition-description" class="mb-1 text-muted small"></p>
+                            <p id="tradition-region" class="mb-0 text-muted small"></p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
                     <div class="mb-3">
                         <label for="name" class="form-label">Group Name</label>
                         <input type="text" class="form-control" id="name" name="name" required>
@@ -35,11 +66,40 @@
                         </select>
                     </div>
                     
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="require_admin_approval" name="require_admin_approval">
+                        <label class="form-check-label" for="require_admin_approval">
+                            Require admin approval for new members
+                        </label>
+                    </div>
+                    
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary">Create Group</button>
                         <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
                     </div>
                 </form>
+                
+                <script>
+                function updateTraditionDescription() {
+                    const select = document.getElementById('tradition_id');
+                    const selectedOption = select.options[select.selectedIndex];
+                    const infoDiv = document.getElementById('tradition-info');
+                    const descEl = document.getElementById('tradition-description');
+                    const regionEl = document.getElementById('tradition-region');
+                    
+                    if (selectedOption.value) {
+                        const description = selectedOption.dataset.description;
+                        const region = selectedOption.dataset.region;
+                        const icon = selectedOption.dataset.icon;
+                        
+                        descEl.textContent = description;
+                        regionEl.textContent = icon + ' Region: ' + region;
+                        infoDiv.style.display = 'block';
+                    } else {
+                        infoDiv.style.display = 'none';
+                    }
+                }
+                </script>
             </div>
         </div>
     </div>
