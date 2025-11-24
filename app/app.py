@@ -652,6 +652,141 @@ def initialize_traditions():
         flash(f'Error initializing traditions: {str(e)}', 'danger')
     return redirect(url_for('create_group'))
 
+@app.route('/financial-survey', methods=['GET'])
+@login_required
+def financial_survey():
+    """Display financial survey questionnaire"""
+    from models import UserFinancialProfile
+    
+    existing_profile = UserFinancialProfile.query.filter_by(user_id=session['user_id']).first()
+    if existing_profile:
+        flash('You have already completed the financial survey. View your recommendations below.', 'info')
+        return redirect(url_for('survey_results'))
+    
+    return render_template('financial_survey.html')
+
+@app.route('/submit-financial-survey', methods=['POST'])
+@login_required
+def submit_financial_survey():
+    """Process financial survey and create user profile"""
+    from models import UserFinancialProfile
+    
+    has_emergency_fund_value = request.form.get('has_emergency_fund')
+    has_emergency_fund = has_emergency_fund_value == 'yes'
+    
+    profile = UserFinancialProfile(
+        user_id=session['user_id'],
+        income_range=request.form.get('income_range'),
+        savings_habit=request.form.get('savings_habit'),
+        financial_goal=request.form.get('financial_goal'),
+        risk_tolerance=request.form.get('risk_tolerance'),
+        employment_status=request.form.get('employment_status'),
+        dependents=int(request.form.get('dependents', 0)),
+        has_emergency_fund=has_emergency_fund,
+        preferred_group_size=request.form.get('preferred_group_size'),
+        contribution_comfort_level=request.form.get('contribution_comfort_level')
+    )
+    
+    db.session.add(profile)
+    db.session.commit()
+    
+    flash('Thank you! Your financial profile has been saved. Here are your personalized recommendations.', 'success')
+    return redirect(url_for('survey_results'))
+
+@app.route('/survey-results')
+@login_required
+def survey_results():
+    """Display personalized group recommendations based on survey"""
+    from models import UserFinancialProfile, Tradition
+    
+    profile = UserFinancialProfile.query.filter_by(user_id=session['user_id']).first()
+    
+    if not profile:
+        flash('Please complete the financial survey first to get personalized recommendations.', 'warning')
+        return redirect(url_for('financial_survey'))
+    
+    recommended_groups = Group.query.filter(
+        Group.id.in_(
+            db.session.query(Member.group_id)
+            .filter(Member.user_id != session['user_id'])
+            .distinct()
+        )
+    ).limit(10).all()
+    
+    contribution_ranges = {
+        'under_50': (0, 50),
+        '50_100': (50, 100),
+        '100_250': (100, 250),
+        '250_500': (250, 500),
+        'over_500': (500, 10000)
+    }
+    
+    min_amount, max_amount = contribution_ranges.get(profile.contribution_comfort_level, (0, 10000))
+    
+    matched_groups = []
+    for group in recommended_groups:
+        if min_amount <= group.contribution_amount <= max_amount:
+            matched_groups.append(group)
+    
+    traditions = Tradition.query.all()
+    
+    insights = generate_financial_insights(profile)
+    
+    return render_template('survey_results.html',
+                          profile=profile,
+                          matched_groups=matched_groups[:5],
+                          traditions=traditions,
+                          insights=insights)
+
+def generate_financial_insights(profile):
+    """Generate personalized financial insights based on survey responses"""
+    insights = {
+        'recommended_contribution': '',
+        'group_size_recommendation': '',
+        'savings_tips': [],
+        'risk_assessment': ''
+    }
+    
+    income_recommendations = {
+        'under_1000': '$25-50',
+        '1000_2500': '$50-100',
+        '2500_5000': '$100-250',
+        '5000_7500': '$250-500',
+        '7500_10000': '$500-750',
+        'over_10000': '$750+'
+    }
+    insights['recommended_contribution'] = income_recommendations.get(profile.income_range, '$50-100')
+    
+    size_recs = {
+        'small': 'Small groups (5-10 members) offer more intimacy and easier coordination.',
+        'medium': 'Medium groups (11-20 members) provide balanced community and diversity.',
+        'large': 'Large groups (21+ members) offer bigger savings pools and networking opportunities.',
+        'no_preference': 'Consider starting with a medium-sized group to balance community and manageability.'
+    }
+    insights['group_size_recommendation'] = size_recs.get(profile.preferred_group_size, size_recs['no_preference'])
+    
+    if not profile.has_emergency_fund:
+        insights['savings_tips'].append('Priority: Build an emergency fund covering 3-6 months of expenses before aggressive savings.')
+    
+    if profile.savings_habit in ['none', 'occasional']:
+        insights['savings_tips'].append('Start small: Even $25/month builds the habit. Automate your savings for consistency.')
+    
+    if profile.financial_goal == 'debt_payoff':
+        insights['savings_tips'].append('Consider the debt avalanche method: Pay minimums on all debts, extra on highest interest rate.')
+    
+    if profile.financial_goal == 'business':
+        insights['savings_tips'].append('Business savings groups can provide both capital and networking. Look for entrepreneur-focused groups.')
+    
+    risk_levels = {
+        'very_low': 'Your conservative approach is wise. Stick to traditional savings groups with proven track records.',
+        'low': 'You prefer stability. Look for groups with established rules and reliable members.',
+        'moderate': 'Your balanced risk tolerance opens many options. Explore various group types.',
+        'high': 'You can handle volatility. Consider innovative group structures or investment-focused circles.'
+    }
+    insights['risk_assessment'] = risk_levels.get(profile.risk_tolerance, risk_levels['moderate'])
+    
+    return insights
+
 @app.route('/set-language/<lang>')
 @login_required
 def set_language(lang):

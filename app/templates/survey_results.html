@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Your Personalized Recommendations - TiKòb{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">📊 Your Financial Profile & Recommendations</h2>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">💡 Your Financial Insights</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Recommended Monthly Contribution:</strong>
+                    <p class="text-muted">{{ insights.recommended_contribution }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Group Size Recommendation:</strong>
+                    <p class="text-muted">{{ insights.group_size_recommendation }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Risk Assessment:</strong>
+                    <p class="text-muted">{{ insights.risk_assessment }}</p>
+                </div>
+                
+                {% if insights.savings_tips %}
+                <div class="mb-3">
+                    <strong>Personalized Tips:</strong>
+                    <ul class="text-muted">
+                        {% for tip in insights.savings_tips %}
+                        <li>{{ tip }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">🎯 Your Financial Profile</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2"><strong>Income Range:</strong> {{ profile.income_range.replace('_', ' ').title() }}</li>
+                    <li class="mb-2"><strong>Savings Habit:</strong> {{ profile.savings_habit.replace('_', ' ').title() }}</li>
+                    <li class="mb-2"><strong>Primary Goal:</strong> {{ profile.financial_goal.replace('_', ' ').title() }}</li>
+                    <li class="mb-2"><strong>Risk Tolerance:</strong> {{ profile.risk_tolerance.replace('_', ' ').title() }}</li>
+                    <li class="mb-2"><strong>Employment:</strong> {{ profile.employment_status.replace('_', ' ').title() }}</li>
+                    <li class="mb-2"><strong>Dependents:</strong> {{ profile.dependents }}</li>
+                    <li class="mb-2"><strong>Emergency Fund:</strong> {{ 'Yes' if profile.has_emergency_fund else 'No' }}</li>
+                </ul>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-outline-primary mt-2">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if matched_groups %}
+<div class="row">
+    <div class="col-12">
+        <h4 class="mb-3">🌟 Recommended Groups for You</h4>
+        <p class="text-muted">Based on your financial profile, these groups match your contribution comfort level and goals:</p>
+        
+        <div class="row">
+            {% for group in matched_groups %}
+            <div class="col-md-6 mb-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">
+                                {% if group.tradition %}
+                                {{ group.tradition.icon }} 
+                                {% endif %}
+                                {{ group.name }}
+                            </h5>
+                            {% if group.tradition %}
+                            <span class="badge bg-info">{{ group.tradition.display_name }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if group.description %}
+                        <p class="card-text small text-muted">{{ group.description[:100] }}...</p>
+                        {% endif %}
+                        
+                        <ul class="list-unstyled small mb-3">
+                            <li><strong>Contribution:</strong> ${{ "%.2f"|format(group.contribution_amount) }} ({{ group.contribution_frequency }})</li>
+                            <li><strong>Currency:</strong> {{ group.currency }}</li>
+                            <li><strong>Group Code:</strong> <code>{{ group.group_code }}</code></li>
+                            {% if group.tradition %}
+                            <li><strong>Region:</strong> {{ group.tradition.region }}</li>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('group_detail', group_id=group.id) }}" class="btn btn-sm btn-outline-primary">View Details</a>
+                            <form method="POST" action="{{ url_for('join_group') }}" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <input type="hidden" name="group_code" value="{{ group.group_code }}"/>
+                                <button type="submit" class="btn btn-sm btn-success w-100">Join This Group</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h5>No Matching Groups Yet</h5>
+            <p>We couldn't find groups that match your contribution comfort level right now. You have two options:</p>
+            <ul>
+                <li><strong>Create Your Own Group:</strong> Start a savings circle that matches your financial profile</li>
+                <li><strong>Browse All Groups:</strong> Explore existing groups and adjust your contributions</li>
+            </ul>
+            <a href="{{ url_for('create_group') }}" class="btn btn-primary">Create New Group</a>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Browse All Groups</a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0">🌍 Explore Cultural Traditions</h5>
+            </div>
+            <div class="card-body">
+                <p>TiKòb supports savings traditions from around the world. Choose your cultural heritage when creating a group:</p>
+                <div class="row">
+                    {% for tradition in traditions[:6] %}
+                    <div class="col-md-4 mb-2">
+                        <span class="badge bg-light text-dark">{{ tradition.icon }} {{ tradition.display_name }} ({{ tradition.region }})</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                <a href="{{ url_for('create_group') }}" class="btn btn-sm btn-primary mt-2">Create Group with Your Tradition</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
