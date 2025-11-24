@@ -105,34 +105,55 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
+    from sqlalchemy.orm import joinedload
+    from sqlalchemy import func, case
+    
     user = User.query.get(session['user_id'])
-    memberships = Member.query.filter_by(user_id=user.id, is_active=True).all()
+    memberships = Member.query.options(joinedload(Member.group)).filter_by(
+        user_id=user.id, 
+        is_active=True
+    ).all()
+    
+    group_ids = [m.group_id for m in memberships]
+    
+    group_stats = db.session.query(
+        Transaction.group_id,
+        func.sum(case((Transaction.transaction_type == 'contribution', Transaction.amount), else_=0)).label('total_contributions'),
+        func.sum(case((Transaction.transaction_type == 'payout', Transaction.amount), else_=0)).label('total_payouts')
+    ).filter(
+        Transaction.group_id.in_(group_ids)
+    ).group_by(Transaction.group_id).all()
+    
+    stats_dict = {stat.group_id: {'contributions': float(stat.total_contributions or 0), 'payouts': float(stat.total_payouts or 0)} for stat in group_stats}
+    
+    member_counts = db.session.query(
+        Member.group_id,
+        func.count(Member.id).label('count')
+    ).filter(
+        Member.group_id.in_(group_ids),
+        Member.is_active == True
+    ).group_by(Member.group_id).all()
+    
+    counts_dict = {mc.group_id: mc.count for mc in member_counts}
     
     groups_data = []
     for membership in memberships:
         group = membership.group
-        total_contributions = db.session.query(db.func.sum(Transaction.amount)).filter(
-            Transaction.group_id == group.id,
-            Transaction.transaction_type == 'contribution'
-        ).scalar() or 0
-        
-        total_payouts = db.session.query(db.func.sum(Transaction.amount)).filter(
-            Transaction.group_id == group.id,
-            Transaction.transaction_type == 'payout'
-        ).scalar() or 0
-        
-        balance = total_contributions - total_payouts
+        stats = stats_dict.get(group.id, {'contributions': 0, 'payouts': 0})
+        balance = stats['contributions'] - stats['payouts']
         
         groups_data.append({
             'group': group,
             'membership': membership,
             'balance': balance,
-            'members_count': Member.query.filter_by(group_id=group.id, is_active=True).count()
+            'members_count': counts_dict.get(group.id, 0)
         })
     
     quote = get_random_quote()
     advice = get_financial_advice(user.id)
-    recent_badges = UserBadge.query.filter_by(user_id=user.id).order_by(UserBadge.earned_at.desc()).limit(3).all()
+    recent_badges = UserBadge.query.options(joinedload(UserBadge.badge)).filter_by(
+        user_id=user.id
+    ).order_by(UserBadge.earned_at.desc()).limit(3).all()
     
     return render_template('dashboard.html', 
                           groups_data=groups_data, 
@@ -227,24 +248,38 @@ def group_detail(group_id):
         flash('You are not a member of this group.', 'danger')
         return redirect(url_for('dashboard'))
     
-    members = Member.query.filter_by(group_id=group_id, is_active=True).all()
+    from sqlalchemy.orm import joinedload
+    from sqlalchemy import func, case
+    
+    members = Member.query.options(joinedload(Member.user)).filter_by(
+        group_id=group_id, 
+        is_active=True
+    ).all()
+    
+    member_ids = [m.id for m in members]
+    
+    transaction_stats = db.session.query(
+        Transaction.member_id,
+        func.sum(case((Transaction.transaction_type == 'contribution', Transaction.amount), else_=0)).label('total_contributed'),
+        func.sum(case((Transaction.transaction_type == 'payout', Transaction.amount), else_=0)).label('total_received')
+    ).filter(
+        Transaction.member_id.in_(member_ids)
+    ).group_by(Transaction.member_id).all()
+    
+    stats_dict = {
+        stat.member_id: {
+            'contributed': float(stat.total_contributed or 0),
+            'received': float(stat.total_received or 0)
+        } for stat in transaction_stats
+    }
     
     member_stats = []
     for member in members:
-        total_contributed = db.session.query(db.func.sum(Transaction.amount)).filter(
-            Transaction.member_id == member.id,
-            Transaction.transaction_type == 'contribution'
-        ).scalar() or 0
-        
-        total_received = db.session.query(db.func.sum(Transaction.amount)).filter(
-            Transaction.member_id == member.id,
-            Transaction.transaction_type == 'payout'
-        ).scalar() or 0
-        
+        stats = stats_dict.get(member.id, {'contributed': 0, 'received': 0})
         member_stats.append({
             'member': member,
-            'total_contributed': total_contributed,
-            'total_received': total_received
+            'total_contributed': stats['contributed'],
+            'total_received': stats['received']
         })
     
     return render_template('group_detail.html', group=group, membership=membership, member_stats=member_stats)
@@ -298,6 +333,9 @@ def add_transaction(group_id):
 @app.route('/group/<int:group_id>/ledger')
 @login_required
 def ledger(group_id):
+    from sqlalchemy.orm import joinedload
+    from sqlalchemy import func, case
+    
     group = Group.query.get_or_404(group_id)
     membership = Member.query.filter_by(user_id=session['user_id'], group_id=group_id, is_active=True).first()
     
@@ -305,20 +343,22 @@ def ledger(group_id):
         flash('You are not a member of this group.', 'danger')
         return redirect(url_for('dashboard'))
     
-    transactions = Transaction.query.filter_by(group_id=group_id).order_by(Transaction.transaction_date.desc()).all()
+    transactions = Transaction.query.options(
+        joinedload(Transaction.member).joinedload(Member.user)
+    ).filter_by(group_id=group_id).order_by(Transaction.transaction_date.desc()).all()
     
-    members = Member.query.filter_by(group_id=group_id, is_active=True).all()
+    members = Member.query.options(joinedload(Member.user)).filter_by(
+        group_id=group_id, 
+        is_active=True
+    ).all()
     
-    total_contributions = db.session.query(db.func.sum(Transaction.amount)).filter(
-        Transaction.group_id == group_id,
-        Transaction.transaction_type == 'contribution'
-    ).scalar() or 0
+    totals = db.session.query(
+        func.sum(case((Transaction.transaction_type == 'contribution', Transaction.amount), else_=0)).label('contributions'),
+        func.sum(case((Transaction.transaction_type == 'payout', Transaction.amount), else_=0)).label('payouts')
+    ).filter(Transaction.group_id == group_id).first()
     
-    total_payouts = db.session.query(db.func.sum(Transaction.amount)).filter(
-        Transaction.group_id == group_id,
-        Transaction.transaction_type == 'payout'
-    ).scalar() or 0
-    
+    total_contributions = float(totals.contributions or 0)
+    total_payouts = float(totals.payouts or 0)
     balance = total_contributions - total_payouts
     
     return render_template('ledger.html', 
