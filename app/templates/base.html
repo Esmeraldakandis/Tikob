@@ -33,6 +33,23 @@
                         <a class="nav-link" href="{{ url_for('join_group') }}">🤝 Join Group</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('leaderboard') }}">🏆 Leaderboard</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            🌐 {% if session.get('language') == 'ht' %}Kreyòl{% else %}English{% endif %}
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('set_language', lang='en') }}">🇺🇸 English</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('set_language', lang='ht') }}">🇭🇹 Kreyòl Ayisyen</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="darkModeToggle" title="Toggle dark mode">
+                            <span class="dark-mode-icon">🌙</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <span class="nav-link">👤 {{ session.username }}</span>
                     </li>
                     <li class="nav-item">
@@ -60,5 +77,36 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Dark Mode Toggle
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const darkModeIcon = document.querySelector('.dark-mode-icon');
+        const htmlElement = document.documentElement;
+        
+        // Check for saved dark mode preference
+        const currentMode = localStorage.getItem('darkMode') || 'light';
+        if (currentMode === 'dark') {
+            htmlElement.setAttribute('data-theme', 'dark');
+            if (darkModeIcon) darkModeIcon.textContent = '☀️';
+        }
+        
+        // Toggle dark mode
+        if (darkModeToggle) {
+            darkModeToggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                const isDark = htmlElement.getAttribute('data-theme') === 'dark';
+                
+                if (isDark) {
+                    htmlElement.setAttribute('data-theme', 'light');
+                    localStorage.setItem('darkMode', 'light');
+                    if (darkModeIcon) darkModeIcon.textContent = '🌙';
+                } else {
+                    htmlElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('darkMode', 'dark');
+                    if (darkModeIcon) darkModeIcon.textContent = '☀️';
+                }
+            });
+        }
+    </script>
 </body>
 </html>

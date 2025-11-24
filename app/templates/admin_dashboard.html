@@ -6,7 +6,14 @@
 <div class="row mb-4">
     <div class="col-12">
         <h2 class="luxury-heading">Admin Dashboard</h2>
-        <p class="quote-text fst-italic">"{{ quote }}"</p>
+        <div class="motivational-quote">
+            <div class="proverb-text">{{ proverb.text }}</div>
+            {% if language == 'en' and proverb.original %}
+                <div class="proverb-original mt-2 text-muted" style="font-size: 0.9em;">— {{ proverb.original }}</div>
+            {% elif language == 'ht' and proverb.translation %}
+                <div class="proverb-translation mt-2 text-muted" style="font-size: 0.9em;">— {{ proverb.translation }}</div>
+            {% endif %}
+        </div>
     </div>
 </div>
 

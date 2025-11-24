@@ -11,6 +11,8 @@ from notifications import send_contribution_notification, send_approval_notifica
 from xp_service import award_xp, update_streak, get_user_rank, check_challenge_progress
 from advice_service import get_latest_advice
 from currency_service import fetch_exchange_rates, convert_amount, get_user_currency, format_currency
+from haitian_culture import get_random_proverb, get_financial_wisdom, get_community_phrase
+from avatar_helper import get_user_initials, get_avatar_color
 import os
 import secrets
 from datetime import datetime
@@ -175,7 +177,8 @@ def dashboard():
             'members_count': counts_dict.get(group.id, 0)
         })
     
-    quote = get_random_quote()
+    language = session.get('language', 'en')
+    proverb = get_random_proverb(language)
     advice = get_financial_advice(user.id)
     recent_badges = UserBadge.query.options(joinedload(UserBadge.badge)).filter_by(
         user_id=user.id
@@ -183,9 +186,10 @@ def dashboard():
     
     return render_template('dashboard.html', 
                           groups_data=groups_data, 
-                          quote=quote,
+                          proverb=proverb,
                           advice=advice,
-                          recent_badges=recent_badges)
+                          recent_badges=recent_badges,
+                          language=language)
 
 @app.route('/create-group', methods=['GET', 'POST'])
 @login_required
@@ -460,11 +464,13 @@ def admin_dashboard():
                 'user': pending.user
             })
     
-    quote = get_random_quote()
+    language = session.get('language', 'en')
+    proverb = get_random_proverb(language)
     return render_template('admin_dashboard.html', 
                           pending_approvals=pending_approvals,
                           admin_groups=admin_groups,
-                          quote=quote)
+                          proverb=proverb,
+                          language=language)
 
 @app.route('/group/<int:group_id>/approve-member/<int:member_id>', methods=['POST'])
 @login_required
@@ -535,14 +541,16 @@ def my_badges():
     earned_badge_ids = [ub.badge_id for ub in user_badges]
     
     advice = get_financial_advice(user.id)
-    quote = get_random_quote()
+    language = session.get('language', 'en')
+    proverb = get_random_proverb(language)
     
     return render_template('badges.html', 
                           user_badges=user_badges,
                           all_badges=all_badges,
                           earned_badge_ids=earned_badge_ids,
                           advice=advice,
-                          quote=quote)
+                          proverb=proverb,
+                          language=language)
 
 @app.route('/uploads/receipts/<filename>')
 @login_required
@@ -571,9 +579,6 @@ def cleanup_receipts():
             flash(f'Error: {error}', 'warning')
     
     return redirect(url_for('admin_dashboard'))
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
 
 @app.route('/leaderboard')
 @login_required
@@ -613,3 +618,23 @@ def initialize_beta_features():
     
     flash('Beta features initialized! Check out the leaderboard and your XP progress.', 'success')
     return redirect(url_for('dashboard'))
+
+@app.route('/set-language/<lang>')
+@login_required
+def set_language(lang):
+    if lang in ['en', 'ht']:
+        session['language'] = lang
+        flash(get_community_phrase('welcome', lang), 'success')
+    return redirect(request.referrer or url_for('dashboard'))
+
+@app.context_processor
+def utility_processor():
+    """Make utility functions available to all templates"""
+    return {
+        'get_user_initials': get_user_initials,
+        'get_avatar_color': get_avatar_color,
+        'get_community_phrase': get_community_phrase
+    }
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)

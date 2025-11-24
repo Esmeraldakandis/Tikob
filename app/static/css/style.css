@@ -10,13 +10,67 @@
     --tikob-success: #2ecc71;
     --tikob-info: #3498db;
     --tikob-danger: #e74c3c;
+    
+    /* Light mode variables */
+    --bg-primary: linear-gradient(135deg, var(--tikob-cream) 0%, var(--tikob-cream-dark) 100%);
+    --bg-card: white;
+    --text-primary: var(--tikob-navy);
+    --text-secondary: #6c757d;
+    --border-color: var(--tikob-cream-dark);
+}
+
+[data-theme="dark"] {
+    --tikob-navy: #e8dfd2;
+    --tikob-navy-light: #f5f0e8;
+    --tikob-gold: #e6c85c;
+    --tikob-gold-light: #f4dc8c;
+    --tikob-cream: #1a2332;
+    --tikob-cream-dark: #2c3e50;
+    
+    /* Dark mode variables */
+    --bg-primary: linear-gradient(135deg, #0f1419 0%, #1a2332 100%);
+    --bg-card: #2c3e50;
+    --text-primary: #e8dfd2;
+    --text-secondary: #a0a0a0;
+    --border-color: #3a4a5f;
+}
+
+[data-theme="dark"] .card {
+    background: var(--bg-card);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .table {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+    background-color: #1a2332;
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .dropdown-menu {
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .dropdown-item {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+    background-color: #1a2332;
 }
 
 body {
-    background: linear-gradient(135deg, var(--tikob-cream) 0%, var(--tikob-cream-dark) 100%);
+    background: var(--bg-primary);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     min-height: 100vh;
-    color: var(--tikob-navy);
+    color: var(--text-primary);
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -251,5 +305,196 @@ code {
     .motivational-quote {
         font-size: 1rem;
         padding: 1.5rem;
+    }
+}
+
+/* Animated Progress Bars */
+.progress-bar-animated {
+    background: linear-gradient(90deg, 
+        var(--tikob-gold) 0%, 
+        var(--tikob-gold-light) 50%, 
+        var(--tikob-gold) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite linear;
+    border-radius: 10px;
+    height: 25px;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-bar-animated::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255,255,255,0.3) 50%, 
+        transparent 100%);
+    animation: slide 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+@keyframes slide {
+    0% { left: -100%; }
+    100% { left: 200%; }
+}
+
+.progress {
+    background-color: var(--tikob-cream-dark);
+    border-radius: 10px;
+    height: 25px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.progress-text {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    line-height: 25px;
+    font-weight: 600;
+    color: var(--tikob-navy);
+    z-index: 1;
+    text-shadow: 0 1px 2px rgba(255,255,255,0.5);
+}
+
+/* Quick Actions Widget */
+.quick-actions {
+    background: linear-gradient(135deg, var(--tikob-navy) 0%, var(--tikob-navy-light) 100%);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.quick-action-btn {
+    background: rgba(255,255,255,0.1);
+    border: 2px solid var(--tikob-gold);
+    color: var(--tikob-cream);
+    padding: 1rem;
+    border-radius: 10px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+    font-weight: 600;
+}
+
+.quick-action-btn:hover {
+    background: var(--tikob-gold);
+    color: var(--tikob-navy);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(212, 175, 55, 0.3);
+}
+
+.quick-action-icon {
+    font-size: 1.5rem;
+}
+
+/* Profile Avatars */
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--tikob-gold) 0%, var(--tikob-gold-light) 100%);
+    color: var(--tikob-navy);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    text-transform: uppercase;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.avatar-lg {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+}
+
+.avatar-sm {
+    width: 30px;
+    height: 30px;
+    font-size: 0.75rem;
+}
+
+/* Stats Cards with Hover Effects */
+.stat-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.stat-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 12px 24px rgba(212, 175, 55, 0.3);
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--tikob-gold) 0%, var(--tikob-gold-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Challenge Cards */
+.challenge-card {
+    border-left: 4px solid var(--tikob-gold);
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    transition: all 0.3s;
+}
+
+.challenge-card:hover {
+    box-shadow: 0 6px 16px rgba(212, 175, 55, 0.2);
+    transform: translateX(5px);
+}
+
+.challenge-badge {
+    background: linear-gradient(135deg, var(--tikob-gold) 0%, var(--tikob-gold-light) 100%);
+    color: var(--tikob-navy);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: inline-block;
+}
+
+/* Pulse Animation for Notifications */
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+}
+
+.notification-badge {
+    animation: pulse 2s infinite;
+}
+
+/* Responsive Design Enhancements */
+@media (max-width: 768px) {
+    .quick-actions {
+        padding: 1rem;
+    }
+    
+    .quick-action-btn {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
     }
 }

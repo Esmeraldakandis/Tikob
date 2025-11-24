@@ -5,7 +5,12 @@
 {% block content %}
 
 <div class="motivational-quote">
-    {{ quote }}
+    <div class="proverb-text">{{ proverb.text }}</div>
+    {% if language == 'en' and proverb.original %}
+        <div class="proverb-original mt-2 text-muted" style="font-size: 0.9em;">— {{ proverb.original }}</div>
+    {% elif language == 'ht' and proverb.translation %}
+        <div class="proverb-translation mt-2 text-muted" style="font-size: 0.9em;">— {{ proverb.translation }}</div>
+    {% endif %}
 </div>
 
 <h2 class="page-title">🏆 My Achievements</h2>

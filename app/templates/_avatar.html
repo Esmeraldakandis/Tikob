@@ -1,0 +1,5 @@
+{% macro render_avatar(username, size='md') %}
+<div class="avatar avatar-{{ size }}" style="background: {{ get_avatar_color(username) }};">
+    {{ get_user_initials(username) }}
+</div>
+{% endmacro %}

@@ -5,41 +5,81 @@
 {% block content %}
 
 <div class="motivational-quote">
-    {{ quote }}
+    <div class="proverb-text">{{ proverb.text }}</div>
+    {% if language == 'en' and proverb.original %}
+        <div class="proverb-original mt-2 text-muted" style="font-size: 0.9em;">— {{ proverb.original }}</div>
+    {% elif language == 'ht' and proverb.translation %}
+        <div class="proverb-translation mt-2 text-muted" style="font-size: 0.9em;">— {{ proverb.translation }}</div>
+    {% endif %}
+    {% if proverb.meaning %}
+        <div class="proverb-meaning mt-2" style="font-size: 0.85em; font-style: normal;">💡 {{ proverb.meaning }}</div>
+    {% endif %}
+</div>
+
+<!-- Quick Actions Widget -->
+<div class="quick-actions">
+    <h5 class="text-white mb-3">⚡ Quick Actions</h5>
+    <div class="row g-3">
+        <div class="col-md-3 col-6">
+            <a href="{{ url_for('create_group') }}" class="quick-action-btn">
+                <span class="quick-action-icon">➕</span>
+                <span>Create Group</span>
+            </a>
+        </div>
+        <div class="col-md-3 col-6">
+            <a href="{{ url_for('join_group') }}" class="quick-action-btn">
+                <span class="quick-action-icon">🤝</span>
+                <span>Join Group</span>
+            </a>
+        </div>
+        <div class="col-md-3 col-6">
+            <a href="{{ url_for('leaderboard') }}" class="quick-action-btn">
+                <span class="quick-action-icon">🏆</span>
+                <span>Leaderboard</span>
+            </a>
+        </div>
+        <div class="col-md-3 col-6">
+            <a href="{{ url_for('my_badges') }}" class="quick-action-btn">
+                <span class="quick-action-icon">🎖️</span>
+                <span>My Badges</span>
+            </a>
+        </div>
+    </div>
 </div>
 
 <div class="row mb-4">
     <div class="col-md-8">
-        <h2 class="page-title">My Savings Groups</h2>
-    </div>
-    <div class="col-md-4 text-end">
-        <a href="{{ url_for('my_badges') }}" class="btn btn-outline-primary">🏆 View My Badges</a>
+        <h2 class="page-title">{% if language == 'ht' %}Gwoup Ekonomi Mwen{% else %}My Savings Groups{% endif %}</h2>
     </div>
 </div>
 
 {% if advice %}
 <div class="row mb-4">
     <div class="col-md-4">
-        <div class="card text-center">
+        <div class="card stat-card text-center">
             <div class="card-body">
-                <h3 class="text-primary">${{ "%.2f"|format(advice.total_saved) }}</h3>
-                <p class="mb-0">Total Saved</p>
+                <div class="stat-value">${{ "%.2f"|format(advice.total_saved) }}</div>
+                <p class="mb-0 text-muted">{% if language == 'ht' %}Total Ekonomize{% else %}Total Saved{% endif %}</p>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card text-center">
+        <div class="card stat-card text-center">
             <div class="card-body">
-                <h3 class="text-success">{{ advice.groups_count }}</h3>
-                <p class="mb-0">Active Groups</p>
+                <div class="stat-value">{{ advice.groups_count }}</div>
+                <p class="mb-0 text-muted">{% if language == 'ht' %}Gwoup Aktif{% else %}Active Groups{% endif %}</p>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card text-center">
+        <div class="card stat-card text-center">
             <div class="card-body">
-                <h3 class="text-info">{{ "%.0f"|format(advice.next_goal.progress) }}%</h3>
-                <p class="mb-0">Next Goal (${{ advice.next_goal.amount }})</p>
+                <div class="stat-value">{{ "%.0f"|format(advice.next_goal.progress) }}%</div>
+                <p class="mb-0 text-muted">{% if language == 'ht' %}Objektif{% else %}Next Goal{% endif %} (${{ advice.next_goal.amount }})</p>
+                <div class="progress mt-2" style="position: relative;">
+                    <div class="progress-bar-animated" style="width: {{ "%.0f"|format(advice.next_goal.progress) }}%"></div>
+                    <div class="progress-text">{{ "%.0f"|format(advice.next_goal.progress) }}%</div>
+                </div>
             </div>
         </div>
     </div>
@@ -58,11 +98,22 @@
                             <p class="card-text text-muted">{{ data.group.description or 'No description' }}</p>
                             
                             <ul class="list-unstyled">
-                                <li><strong>Contribution:</strong> ${{ "%.2f"|format(data.group.contribution_amount) }} / {{ data.group.contribution_frequency }}</li>
-                                <li><strong>Members:</strong> {{ data.members_count }}</li>
-                                <li><strong>Group Balance:</strong> <span class="text-success">${{ "%.2f"|format(data.balance) }}</span></li>
-                                <li><strong>Your Role:</strong> <span class="badge bg-info">{{ data.membership.role }}</span></li>
+                                <li><strong>{% if language == 'ht' %}Kontribisyon{% else %}Contribution{% endif %}:</strong> ${{ "%.2f"|format(data.group.contribution_amount) }} / {{ data.group.contribution_frequency }}</li>
+                                <li><strong>{% if language == 'ht' %}Manm{% else %}Members{% endif %}:</strong> {{ data.members_count }}</li>
+                                <li><strong>{% if language == 'ht' %}Balans Gwoup{% else %}Group Balance{% endif %}:</strong> <span class="text-success">${{ "%.2f"|format(data.balance) }}</span></li>
+                                <li><strong>{% if language == 'ht' %}Wòl Ou{% else %}Your Role{% endif %}:</strong> <span class="badge bg-info">{{ data.membership.role }}</span></li>
                             </ul>
+                            
+                            <!-- Progress Bar for Group Balance -->
+                            {% set target = data.group.contribution_amount * data.members_count * 10 %}
+                            {% set progress = (data.balance / target * 100) if target > 0 else 0 %}
+                            <div class="mb-3">
+                                <small class="text-muted">{% if language == 'ht' %}Pwogrè{% else %}Progress to ${{ "%.0f"|format(target) }}{% endif %}</small>
+                                <div class="progress" style="position: relative;">
+                                    <div class="progress-bar-animated" style="width: {{ "%.0f"|format(progress if progress <= 100 else 100) }}%"></div>
+                                    <div class="progress-text">{{ "%.0f"|format(progress if progress <= 100 else 100) }}%</div>
+                                </div>
+                            </div>
                             
                             <div class="d-grid gap-2">
                                 <a href="{{ url_for('group_detail', group_id=data.group.id) }}" class="btn btn-primary btn-sm">View Details</a>
