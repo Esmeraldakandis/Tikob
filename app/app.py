@@ -1,18 +1,31 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
-from models import db, User, Group, Member, Transaction
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file, Response
+from models import db, User, Group, Member, Transaction, Badge, UserBadge
+from werkzeug.utils import secure_filename
+from utils import convert_currency, get_random_quote, check_and_award_badges, generate_group_report_csv, get_financial_advice, seed_initial_data
 import os
 import secrets
 from datetime import datetime
+
+UPLOAD_FOLDER = 'app/uploads/receipts'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SESSION_SECRET', 'dev-secret-key-change-in-production')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tikob.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
+
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 db.init_app(app)
 
 with app.app_context():
     db.create_all()
+    seed_initial_data()
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def login_required(f):
     from functools import wraps
@@ -107,7 +120,15 @@ def dashboard():
             'members_count': Member.query.filter_by(group_id=group.id, is_active=True).count()
         })
     
-    return render_template('dashboard.html', groups_data=groups_data)
+    quote = get_random_quote()
+    advice = get_financial_advice(user.id)
+    recent_badges = UserBadge.query.filter_by(user_id=user.id).order_by(UserBadge.earned_at.desc()).limit(3).all()
+    
+    return render_template('dashboard.html', 
+                          groups_data=groups_data, 
+                          quote=quote,
+                          advice=advice,
+                          recent_badges=recent_badges)
 
 @app.route('/create-group', methods=['GET', 'POST'])
 @login_required
@@ -161,14 +182,26 @@ def join_group():
             flash('You are already a member of this group.', 'warning')
             return redirect(url_for('group_detail', group_id=group.id))
         elif existing_member:
-            existing_member.is_active = True
+            if group.require_admin_approval:
+                existing_member.approval_status = 'pending'
+                existing_member.is_active = False
+                flash('Your request to rejoin is pending admin approval.', 'info')
+            else:
+                existing_member.is_active = True
+                existing_member.approval_status = 'approved'
+                flash('Rejoined group successfully!', 'success')
             db.session.commit()
-            flash('Rejoined group successfully!', 'success')
         else:
-            member = Member(user_id=session['user_id'], group_id=group.id, role='member')
+            if group.require_admin_approval:
+                member = Member(user_id=session['user_id'], group_id=group.id, role='member', 
+                              approval_status='pending', is_active=False)
+                flash('Your request to join is pending admin approval.', 'info')
+            else:
+                member = Member(user_id=session['user_id'], group_id=group.id, role='member', 
+                              approval_status='approved', is_active=True)
+                flash('Joined group successfully!', 'success')
             db.session.add(member)
             db.session.commit()
-            flash('Joined group successfully!', 'success')
         
         return redirect(url_for('group_detail', group_id=group.id))
     
@@ -221,17 +254,35 @@ def add_transaction(group_id):
     description = request.form.get('description')
     member_id = int(request.form.get('member_id'))
     
+    receipt_filename = None
+    if 'receipt' in request.files:
+        file = request.files['receipt']
+        if file and file.filename and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+            receipt_filename = f"{timestamp}_{filename}"
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], receipt_filename))
+    
     transaction = Transaction(
         group_id=group_id,
         member_id=member_id,
         transaction_type=transaction_type,
         amount=amount,
-        description=description
+        description=description,
+        receipt_filename=receipt_filename,
+        verified=True if receipt_filename else False
     )
     db.session.add(transaction)
     db.session.commit()
     
-    flash('Transaction recorded successfully!', 'success')
+    member = Member.query.get(member_id)
+    awarded_badges = check_and_award_badges(member.user_id)
+    if awarded_badges:
+        badge_names = ', '.join([b.name for b in awarded_badges])
+        flash(f'Transaction recorded! 🎉 New badges earned: {badge_names}', 'success')
+    else:
+        flash('Transaction recorded successfully!', 'success')
+    
     return redirect(url_for('ledger', group_id=group_id))
 
 @app.route('/group/<int:group_id>/ledger')
@@ -280,6 +331,67 @@ def unsubscribe(group_id):
         flash('You have left the group.', 'success')
     
     return redirect(url_for('dashboard'))
+
+@app.route('/group/<int:group_id>/approve-member/<int:member_id>', methods=['POST'])
+@login_required
+def approve_member(group_id, member_id):
+    admin_membership = Member.query.filter_by(user_id=session['user_id'], group_id=group_id, role='admin').first()
+    
+    if not admin_membership:
+        flash('Only admins can approve members.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    member = Member.query.get_or_404(member_id)
+    member.approval_status = 'approved'
+    member.is_active = True
+    db.session.commit()
+    
+    flash(f'{member.user.username} has been approved!', 'success')
+    return redirect(url_for('group_detail', group_id=group_id))
+
+@app.route('/group/<int:group_id>/export-report')
+@login_required
+def export_report(group_id):
+    membership = Member.query.filter_by(user_id=session['user_id'], group_id=group_id).first()
+    
+    if not membership:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    csv_data = generate_group_report_csv(group_id)
+    group = Group.query.get_or_404(group_id)
+    filename = f"{group.name.replace(' ', '_')}_report_{datetime.utcnow().strftime('%Y%m%d')}.csv"
+    
+    return Response(
+        csv_data,
+        mimetype='text/csv',
+        headers={'Content-Disposition': f'attachment;filename={filename}'}
+    )
+
+@app.route('/my-badges')
+@login_required
+def my_badges():
+    user = User.query.get(session['user_id'])
+    user_badges = UserBadge.query.filter_by(user_id=user.id).all()
+    all_badges = Badge.query.all()
+    
+    earned_badge_ids = [ub.badge_id for ub in user_badges]
+    
+    advice = get_financial_advice(user.id)
+    quote = get_random_quote()
+    
+    return render_template('badges.html', 
+                          user_badges=user_badges,
+                          all_badges=all_badges,
+                          earned_badge_ids=earned_badge_ids,
+                          advice=advice,
+                          quote=quote)
+
+@app.route('/uploads/receipts/<filename>')
+@login_required
+def uploaded_file(filename):
+    from flask import send_from_directory
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

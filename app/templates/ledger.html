@@ -48,8 +48,8 @@
         <div class="card">
             <div class="card-body">
                 <h5 class="card-title">Add Transaction</h5>
-                <form method="POST" action="{{ url_for('add_transaction', group_id=group.id) }}" class="row g-3">
-                    <div class="col-md-3">
+                <form method="POST" action="{{ url_for('add_transaction', group_id=group.id) }}" enctype="multipart/form-data" class="row g-3">
+                    <div class="col-md-2">
                         <label for="transaction_type" class="form-label">Type</label>
                         <select class="form-select" id="transaction_type" name="transaction_type" required>
                             <option value="contribution">Contribution</option>
@@ -68,9 +68,13 @@
                         <label for="amount" class="form-label">Amount ($)</label>
                         <input type="number" step="0.01" class="form-control" id="amount" name="amount" required>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label for="description" class="form-label">Description</label>
                         <input type="text" class="form-control" id="description" name="description">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="receipt" class="form-label">Receipt (optional)</label>
+                        <input type="file" class="form-control" id="receipt" name="receipt" accept=".png,.jpg,.jpeg,.pdf">
                     </div>
                     <div class="col-md-1 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary w-100">Add</button>

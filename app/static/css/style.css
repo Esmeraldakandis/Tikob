@@ -1,67 +1,242 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
 :root {
-    --tikob-primary: #0d6efd;
-    --tikob-success: #198754;
-    --tikob-info: #0dcaf0;
+    --tikob-navy: #1a2332;
+    --tikob-navy-light: #2c3e50;
+    --tikob-gold: #d4af37;
+    --tikob-gold-light: #e6c85c;
+    --tikob-cream: #f5f0e8;
+    --tikob-cream-dark: #e8dfd2;
+    --tikob-success: #2ecc71;
+    --tikob-info: #3498db;
+    --tikob-danger: #e74c3c;
 }
 
 body {
-    background-color: #f8f9fa;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(135deg, var(--tikob-cream) 0%, var(--tikob-cream-dark) 100%);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    min-height: 100vh;
+    color: var(--tikob-navy);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', Georgia, serif;
+    color: var(--tikob-navy);
+    font-weight: 600;
+}
+
+.navbar {
+    background: linear-gradient(135deg, var(--tikob-navy) 0%, var(--tikob-navy-light) 100%) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .navbar-brand {
-    font-size: 1.5rem;
-    letter-spacing: 1px;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--tikob-gold) !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.nav-link {
+    color: var(--tikob-cream) !important;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.nav-link:hover {
+    color: var(--tikob-gold) !important;
 }
 
 .card {
     border: none;
-    border-radius: 10px;
-    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 15px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    background: white;
+    overflow: hidden;
 }
 
 .card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.2);
+}
+
+.card-header {
+    background: linear-gradient(135deg, var(--tikob-navy) 0%, var(--tikob-navy-light) 100%);
+    color: var(--tikob-cream);
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 600;
+    border: none;
 }
 
 .shadow {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .shadow-sm {
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .btn {
-    border-radius: 6px;
-    padding: 0.5rem 1rem;
-    font-weight: 500;
+    border-radius: 8px;
+    padding: 0.6rem 1.5rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--tikob-gold) 0%, var(--tikob-gold-light) 100%);
+    border: none;
+    color: var(--tikob-navy);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--tikob-gold-light) 0%, var(--tikob-gold) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+}
+
+.btn-outline-primary {
+    border: 2px solid var(--tikob-gold);
+    color: var(--tikob-gold);
+}
+
+.btn-outline-primary:hover {
+    background: var(--tikob-gold);
+    color: var(--tikob-navy);
+}
+
+.btn-success {
+    background: var(--tikob-success);
+    border: none;
+}
+
+.btn-danger, .btn-outline-danger {
+    border-color: var(--tikob-danger);
+    color: var(--tikob-danger);
 }
 
 .table {
     background-color: white;
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
 }
 
 code {
-    padding: 0.25rem 0.5rem;
-    background-color: #e9ecef;
-    border-radius: 4px;
+    padding: 0.4rem 0.8rem;
+    background: var(--tikob-gold-light);
+    color: var(--tikob-navy);
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1.1em;
 }
 
 .alert {
-    border-radius: 8px;
+    border-radius: 10px;
     border: none;
+    font-weight: 500;
 }
 
 .form-control, .form-select {
-    border-radius: 6px;
+    border-radius: 8px;
+    border: 2px solid var(--tikob-cream-dark);
+    padding: 0.75rem 1rem;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--tikob-gold);
+    box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.25);
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--tikob-navy);
+    margin-bottom: 0.5rem;
 }
 
 .text-uppercase {
     text-transform: uppercase;
+}
+
+.badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.bg-primary {
+    background: var(--tikob-gold) !important;
+    color: var(--tikob-navy) !important;
+}
+
+.bg-info {
+    background: var(--tikob-info) !important;
+}
+
+.bg-success {
+    background: var(--tikob-success) !important;
+}
+
+.text-primary {
+    color: var(--tikob-gold) !important;
+}
+
+.text-success {
+    color: var(--tikob-success) !important;
+}
+
+.motivational-quote {
+    background: linear-gradient(135deg, var(--tikob-navy) 0%, var(--tikob-navy-light) 100%);
+    color: var(--tikob-cream);
+    padding: 2rem;
+    border-radius: 15px;
+    margin: 2rem 0;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.2rem;
+    font-style: italic;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.motivational-quote::before {
+    content: '\201C';
+    font-size: 3rem;
+    color: var(--tikob-gold);
+    line-height: 0;
+    margin-right: 0.5rem;
+}
+
+.motivational-quote::after {
+    content: '\201D';
+    font-size: 3rem;
+    color: var(--tikob-gold);
+    line-height: 0;
+    margin-left: 0.5rem;
+}
+
+.page-title {
+    color: var(--tikob-navy);
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    position: relative;
+    padding-bottom: 1rem;
+}
+
+.page-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--tikob-gold) 0%, var(--tikob-gold-light) 100%);
+    border-radius: 2px;
 }
 
 @media (max-width: 768px) {
@@ -71,5 +246,10 @@ code {
     
     .table {
         font-size: 0.875rem;
+    }
+    
+    .motivational-quote {
+        font-size: 1rem;
+        padding: 1.5rem;
     }
 }

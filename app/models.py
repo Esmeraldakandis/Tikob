@@ -9,9 +9,12 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
+    preferred_currency = db.Column(db.String(3), default='USD')
+    notification_enabled = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     memberships = db.relationship('Member', back_populates='user', cascade='all, delete-orphan')
+    badges = db.relationship('UserBadge', back_populates='user', cascade='all, delete-orphan')
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -26,8 +29,10 @@ class Group(db.Model):
     contribution_amount = db.Column(db.Float, nullable=False)
     contribution_frequency = db.Column(db.String(20), nullable=False)
     group_code = db.Column(db.String(10), unique=True, nullable=False)
+    currency = db.Column(db.String(3), default='USD')
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    require_admin_approval = db.Column(db.Boolean, default=False)
     
     members = db.relationship('Member', back_populates='group', cascade='all, delete-orphan')
     transactions = db.relationship('Transaction', back_populates='group', cascade='all, delete-orphan')
@@ -40,6 +45,7 @@ class Member(db.Model):
     role = db.Column(db.String(20), default='member')
     joined_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
+    approval_status = db.Column(db.String(20), default='approved')
     
     user = db.relationship('User', back_populates='memberships')
     group = db.relationship('Group', back_populates='members')
@@ -54,7 +60,38 @@ class Transaction(db.Model):
     transaction_type = db.Column(db.String(20), nullable=False)
     amount = db.Column(db.Float, nullable=False)
     description = db.Column(db.Text)
+    receipt_filename = db.Column(db.String(255))
     transaction_date = db.Column(db.DateTime, default=datetime.utcnow)
+    verified = db.Column(db.Boolean, default=False)
     
     group = db.relationship('Group', back_populates='transactions')
     member = db.relationship('Member', back_populates='transactions')
+
+class Badge(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False, unique=True)
+    description = db.Column(db.Text)
+    icon = db.Column(db.String(50))
+    criteria_type = db.Column(db.String(50))
+    criteria_value = db.Column(db.Integer)
+    
+    user_badges = db.relationship('UserBadge', back_populates='badge', cascade='all, delete-orphan')
+
+class UserBadge(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    badge_id = db.Column(db.Integer, db.ForeignKey('badge.id'), nullable=False)
+    earned_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', back_populates='badges')
+    badge = db.relationship('Badge', back_populates='user_badges')
+    
+    __table_args__ = (db.UniqueConstraint('user_id', 'badge_id', name='unique_user_badge'),)
+
+class FinancialTip(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    category = db.Column(db.String(50))
+    is_motivational = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

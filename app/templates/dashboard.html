@@ -3,10 +3,51 @@
 {% block title %}Dashboard - TiKòb{% endblock %}
 
 {% block content %}
+
+<div class="motivational-quote">
+    {{ quote }}
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2 class="page-title">My Savings Groups</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('my_badges') }}" class="btn btn-outline-primary">🏆 View My Badges</a>
+    </div>
+</div>
+
+{% if advice %}
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">${{ "%.2f"|format(advice.total_saved) }}</h3>
+                <p class="mb-0">Total Saved</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-success">{{ advice.groups_count }}</h3>
+                <p class="mb-0">Active Groups</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-info">{{ "%.0f"|format(advice.next_goal.progress) }}%</h3>
+                <p class="mb-0">Next Goal (${{ advice.next_goal.amount }})</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <div class="row">
-    <div class="col-12">
-        <h2 class="mb-4">My Groups</h2>
-        
+    <div class="col-12">        
         {% if groups_data %}
             <div class="row">
                 {% for data in groups_data %}
