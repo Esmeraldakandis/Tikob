@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Join Group - TiKòb{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow">
+            <div class="card-body">
+                <h2 class="card-title mb-4">Join a Group</h2>
+                <p class="text-muted">Enter the group code shared by the group admin.</p>
+                
+                <form method="POST" action="{{ url_for('join_group') }}">
+                    <div class="mb-3">
+                        <label for="group_code" class="form-label">Group Code</label>
+                        <input type="text" class="form-control text-uppercase" id="group_code" name="group_code" placeholder="e.g., AB12CD34" required>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Join Group</button>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

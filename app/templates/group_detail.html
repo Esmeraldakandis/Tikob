@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}{{ group.name }} - TiKòb{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-start mb-4">
+            <div>
+                <h2>{{ group.name }}</h2>
+                <p class="text-muted">{{ group.description or 'No description' }}</p>
+            </div>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Group Information</h5>
+                <ul class="list-unstyled mb-0">
+                    <li><strong>Group Code:</strong> <code class="text-primary fs-5">{{ group.group_code }}</code></li>
+                    <li><strong>Contribution:</strong> ${{ "%.2f"|format(group.contribution_amount) }}</li>
+                    <li><strong>Frequency:</strong> {{ group.contribution_frequency|title }}</li>
+                    <li><strong>Created:</strong> {{ group.created_at.strftime('%B %d, %Y') }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Quick Actions</h5>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('ledger', group_id=group.id) }}" class="btn btn-primary">View Ledger</a>
+                    {% if membership.role == 'admin' %}
+                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#shareModal">Share Group Code</button>
+                    {% endif %}
+                    <form method="POST" action="{{ url_for('unsubscribe', group_id=group.id) }}" onsubmit="return confirm('Are you sure you want to leave this group?');">
+                        <button type="submit" class="btn btn-outline-danger w-100">Leave Group</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <h4 class="mb-3">Members ({{ member_stats|length }})</h4>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Member</th>
+                        <th>Role</th>
+                        <th>Joined</th>
+                        <th>Total Contributed</th>
+                        <th>Total Received</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in member_stats %}
+                    <tr>
+                        <td>{{ stat.member.user.username }}</td>
+                        <td><span class="badge bg-{{ 'primary' if stat.member.role == 'admin' else 'secondary' }}">{{ stat.member.role }}</span></td>
+                        <td>{{ stat.member.joined_at.strftime('%b %d, %Y') }}</td>
+                        <td class="text-success">${{ "%.2f"|format(stat.total_contributed) }}</td>
+                        <td class="text-info">${{ "%.2f"|format(stat.total_received) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="shareModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Share Group Code</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p>Share this code with others to invite them to join:</p>
+                <h2 class="text-primary my-4"><code>{{ group.group_code }}</code></h2>
+                <p class="text-muted">Members can join by entering this code on the "Join Group" page.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
