@@ -49,6 +49,7 @@
             <div class="card-body">
                 <h5 class="card-title">Add Transaction</h5>
                 <form method="POST" action="{{ url_for('add_transaction', group_id=group.id) }}" enctype="multipart/form-data" class="row g-3">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class="col-md-2">
                         <label for="transaction_type" class="form-label">Type</label>
                         <select class="form-select" id="transaction_type" name="transaction_type" required>

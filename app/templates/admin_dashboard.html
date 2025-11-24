@@ -44,6 +44,7 @@
             <div class="card-body text-center">
                 <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary w-100 mb-2">View User Dashboard</a>
                 <form method="POST" action="{{ url_for('cleanup_receipts') }}" onsubmit="return confirm('Clean up receipts older than 90 days?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <button type="submit" class="btn btn-outline-warning w-100">🗑️ Cleanup Old Receipts</button>
                 </form>
             </div>
@@ -79,9 +80,11 @@
                         <td>{{ approval.member.joined_at.strftime('%b %d, %Y at %I:%M %p') }}</td>
                         <td>
                             <form method="POST" action="{{ url_for('approve_member', group_id=approval.group.id, member_id=approval.member.id) }}" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <button type="submit" class="btn btn-sm btn-success">✓ Approve</button>
                             </form>
                             <form method="POST" action="{{ url_for('reject_member', group_id=approval.group.id, member_id=approval.member.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to reject this member?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <button type="submit" class="btn btn-sm btn-danger">✗ Reject</button>
                             </form>
                         </td>

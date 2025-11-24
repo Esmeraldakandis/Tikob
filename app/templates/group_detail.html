@@ -40,6 +40,7 @@
                         <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#shareModal">Share Group Code</button>
                     {% endif %}
                     <form method="POST" action="{{ url_for('unsubscribe', group_id=group.id) }}" onsubmit="return confirm('Are you sure you want to leave this group?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <button type="submit" class="btn btn-outline-danger w-100">Leave Group</button>
                     </form>
                 </div>
@@ -71,9 +72,11 @@
                             <td>{{ pending.joined_at.strftime('%b %d, %Y') }}</td>
                             <td>
                                 <form method="POST" action="{{ url_for('approve_member', group_id=group.id, member_id=pending.id) }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                     <button type="submit" class="btn btn-sm btn-success">✓ Approve</button>
                                 </form>
                                 <form method="POST" action="{{ url_for('reject_member', group_id=group.id, member_id=pending.id) }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                     <button type="submit" class="btn btn-sm btn-danger">✗ Reject</button>
                                 </form>
                             </td>
