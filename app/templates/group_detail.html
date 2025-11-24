@@ -3,8 +3,38 @@
 {% block title %}{{ group.name }} - TiKòb{% endblock %}
 
 {% block content %}
+{% if group.tradition %}
+{% set theme = get_tradition_theme_colors(group.tradition.name) %}
+<style>
+    .tradition-header {
+        background: linear-gradient(135deg, {{ theme.primary }}, {{ theme.secondary }});
+        color: white;
+        padding: 2rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    .tradition-badge {
+        background-color: {{ theme.primary }};
+        color: white;
+    }
+</style>
+{% endif %}
+
 <div class="row">
     <div class="col-12">
+        {% if group.tradition %}
+        <div class="tradition-header shadow">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h2>{{ group.tradition.icon }} {{ group.name }}</h2>
+                    <p class="mb-2">{{ group.description or 'No description' }}</p>
+                    <span class="badge tradition-badge">{{ group.tradition.display_name }}</span>
+                    <span class="badge bg-light text-dark">{{ group.tradition.region }}</span>
+                </div>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-light">Back to Dashboard</a>
+            </div>
+        </div>
+        {% else %}
         <div class="d-flex justify-content-between align-items-start mb-4">
             <div>
                 <h2>{{ group.name }}</h2>
@@ -12,6 +42,7 @@
             </div>
             <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Back to Dashboard</a>
         </div>
+        {% endif %}
     </div>
 </div>
 
@@ -91,6 +122,45 @@
 {% endif %}
 {% endif %}
 
+{% if membership.role == 'admin' %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">👻 Ghost User Management</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Add placeholder users to balance rotation cycles when you have an uneven number of members.</p>
+                <form method="POST" action="{{ url_for('add_ghost_user', group_id=group.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="input-group mb-3">
+                        <input type="text" name="ghost_name" class="form-control" placeholder="Ghost User Name (e.g., Placeholder 1)" required>
+                        <button type="submit" class="btn btn-primary">+ Add Ghost User</button>
+                    </div>
+                </form>
+                {% set ghost_members = group.members|selectattr('is_ghost', 'equalto', True)|list %}
+                {% if ghost_members %}
+                <div class="alert alert-light">
+                    <strong>Current Ghost Users:</strong>
+                    <ul class="mb-0">
+                        {% for ghost in ghost_members %}
+                        <li>
+                            👻 {{ ghost.ghost_name or 'Ghost Member #' + ghost.id|string }}
+                            <form method="POST" action="{{ url_for('remove_ghost_user', group_id=group.id, member_id=ghost.id) }}" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                            </form>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <div class="row">
     <div class="col-12">
         <h4 class="mb-3">Active Members ({{ member_stats|length }})</h4>
@@ -103,16 +173,32 @@
                         <th>Joined</th>
                         <th>Total Contributed</th>
                         <th>Total Received</th>
+                        <th>Reliability</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for stat in member_stats %}
-                    <tr>
-                        <td>{{ stat.member.user.username }}</td>
+                    <tr class="{{ 'table-secondary' if stat.member.is_ghost else '' }}">
+                        <td>
+                            {% if stat.member.is_ghost %}
+                            👻 {{ stat.member.ghost_name or 'Ghost Member #' + stat.member.id|string }}
+                            {% else %}
+                            {{ stat.member.user.username }}
+                            {% endif %}
+                        </td>
                         <td><span class="badge bg-{{ 'primary' if stat.member.role == 'admin' else 'secondary' }}">{{ stat.member.role }}</span></td>
                         <td>{{ stat.member.joined_at.strftime('%b %d, %Y') }}</td>
                         <td class="text-success">${{ "%.2f"|format(stat.total_contributed) }}</td>
                         <td class="text-info">${{ "%.2f"|format(stat.total_received) }}</td>
+                        <td>
+                            {% if stat.member.reliability_score >= 90 %}
+                            <span class="badge bg-success">{{ stat.member.reliability_score }}</span>
+                            {% elif stat.member.reliability_score >= 70 %}
+                            <span class="badge bg-warning">{{ stat.member.reliability_score }}</span>
+                            {% else %}
+                            <span class="badge bg-danger">{{ stat.member.reliability_score }}</span>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

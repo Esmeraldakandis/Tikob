@@ -55,13 +55,15 @@ class Group(db.Model):
 
 class Member(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     group_id = db.Column(db.Integer, db.ForeignKey('group.id'), nullable=False)
     role = db.Column(db.String(20), default='member')
     joined_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
     approval_status = db.Column(db.String(20), default='approved')
+    is_admin = db.Column(db.Boolean, default=False)
     is_ghost = db.Column(db.Boolean, default=False)
+    ghost_name = db.Column(db.String(100))
     reliability_score = db.Column(db.Integer, default=100)
     
     user = db.relationship('User', back_populates='memberships')
@@ -208,3 +210,42 @@ class UserFinancialProfile(db.Model):
     survey_completed_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     user = db.relationship('User', backref=db.backref('financial_profile', uselist=False))
+
+class PlaidAccount(db.Model):
+    __tablename__ = 'plaid_account'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    access_token = db.Column(db.String(255), nullable=False)
+    item_id = db.Column(db.String(255), nullable=False)
+    institution_name = db.Column(db.String(100))
+    account_id = db.Column(db.String(255))
+    account_name = db.Column(db.String(100))
+    account_type = db.Column(db.String(50))
+    account_subtype = db.Column(db.String(50))
+    current_balance = db.Column(db.Float, default=0)
+    available_balance = db.Column(db.Float, default=0)
+    currency_code = db.Column(db.String(10), default='USD')
+    is_active = db.Column(db.Boolean, default=True)
+    last_synced = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', backref='plaid_accounts')
+
+class PersonalTransaction(db.Model):
+    __tablename__ = 'personal_transaction'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    plaid_account_id = db.Column(db.Integer, db.ForeignKey('plaid_account.id'))
+    transaction_id = db.Column(db.String(255))
+    transaction_type = db.Column(db.String(20))
+    category = db.Column(db.String(100))
+    amount = db.Column(db.Float, nullable=False)
+    description = db.Column(db.String(255))
+    merchant_name = db.Column(db.String(100))
+    transaction_date = db.Column(db.DateTime, nullable=False)
+    is_income = db.Column(db.Boolean, default=False)
+    notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', backref='personal_transactions')
+    plaid_account = db.relationship('PlaidAccount', backref='transactions')

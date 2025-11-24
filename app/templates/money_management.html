@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Personal Money Management - TiKòb{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="mb-3">💰 Personal Money Management</h2>
+        <p class="text-muted">Track your income, expenses, and build better financial habits.</p>
+        
+        {% if proverb %}
+        <div class="alert alert-info">
+            <strong>{{ proverb.category }}:</strong> {{ proverb.text }}
+            {% if proverb.translation %}
+            <br><small class="text-muted">{{ proverb.translation }}</small>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Income (30 days)</h6>
+                <h3 class="text-success">${{ "%.2f"|format(total_income) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Expenses (30 days)</h6>
+                <h3 class="text-danger">${{ "%.2f"|format(total_expenses) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Net Savings</h6>
+                <h3 class="{{ 'text-success' if net_savings >= 0 else 'text-danger' }}">${{ "%.2f"|format(net_savings) }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">🏦 Linked Bank Accounts</h5>
+                <button class="btn btn-sm btn-light" id="linkBankBtn">+ Link New Account</button>
+            </div>
+            <div class="card-body">
+                {% if plaid_accounts %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Institution</th>
+                                <th>Account Name</th>
+                                <th>Type</th>
+                                <th>Balance</th>
+                                <th>Last Synced</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for account in plaid_accounts %}
+                            <tr>
+                                <td>{{ account.institution_name }}</td>
+                                <td>{{ account.account_name or 'Primary Account' }}</td>
+                                <td>{{ account.account_type or 'N/A' }}</td>
+                                <td>${{ "%.2f"|format(account.current_balance) }}</td>
+                                <td>{{ account.last_synced.strftime('%Y-%m-%d %H:%M') if account.last_synced else 'Never' }}</td>
+                                <td>
+                                    {% if account.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <h6>No Bank Accounts Linked</h6>
+                    <p>Connect your bank account to automatically track income and expenses. Your data is encrypted and secure.</p>
+                    <button class="btn btn-primary" id="linkBankBtnAlt">Link Your First Account</button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">📊 Recent Transactions</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_transactions %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for txn in recent_transactions %}
+                            <tr>
+                                <td>{{ txn.transaction_date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ txn.description or txn.merchant_name or 'N/A' }}</td>
+                                <td>{{ txn.category or 'Uncategorized' }}</td>
+                                <td class="{{ 'text-success' if txn.is_income else 'text-danger' }}">
+                                    ${{ "%.2f"|format(txn.amount) }}
+                                </td>
+                                <td>
+                                    {% if txn.is_income %}
+                                    <span class="badge bg-success">Income</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Expense</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <p class="mb-0">No transactions yet. Link a bank account to start automatic tracking or manually add transactions.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-warning mt-4">
+    <h6>⚠️ Plaid Integration Setup Required</h6>
+    <p class="mb-0">To link bank accounts, you need to configure Plaid API keys. Contact your administrator or add <code>PLAID_CLIENT_ID</code> and <code>PLAID_SECRET</code> to your environment variables.</p>
+</div>
+
+<script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const linkBankBtn = document.getElementById('linkBankBtn');
+    const linkBankBtnAlt = document.getElementById('linkBankBtnAlt');
+    
+    function initPlaidLink() {
+        fetch('/plaid/create-link-token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Plaid not configured: ' + data.error);
+                return;
+            }
+            
+            const handler = Plaid.create({
+                token: data.link_token,
+                onSuccess: (public_token, metadata) => {
+                    fetch('/plaid/exchange-token', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            public_token: public_token,
+                            institution_name: metadata.institution.name
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.reload();
+                        } else {
+                            alert('Error linking account: ' + data.error);
+                        }
+                    });
+                },
+                onExit: (err, metadata) => {
+                    if (err != null) {
+                        console.error('Plaid Link error:', err);
+                    }
+                }
+            });
+            
+            handler.open();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Could not initialize Plaid Link. Make sure API keys are configured.');
+        });
+    }
+    
+    if (linkBankBtn) {
+        linkBankBtn.addEventListener('click', initPlaidLink);
+    }
+    if (linkBankBtnAlt) {
+        linkBankBtnAlt.addEventListener('click', initPlaidLink);
+    }
+});
+</script>
+{% endblock %}

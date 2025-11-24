@@ -787,6 +787,212 @@ def generate_financial_insights(profile):
     
     return insights
 
+@app.route('/group/<int:group_id>/add-ghost-user', methods=['POST'])
+@login_required
+def add_ghost_user(group_id):
+    """Add a ghost (placeholder) user to a group for balanced rotations"""
+    from models import Member
+    
+    group = Group.query.get_or_404(group_id)
+    membership = Member.query.filter_by(user_id=session['user_id'], group_id=group_id).first()
+    
+    if not membership or membership.role != 'admin':
+        flash('Only group admins can add ghost users.', 'danger')
+        return redirect(url_for('group_detail', group_id=group_id))
+    
+    ghost_name = request.form.get('ghost_name', 'Placeholder')
+    
+    ghost_member = Member(
+        user_id=None,
+        group_id=group_id,
+        role='member',
+        is_active=True,
+        is_ghost=True,
+        ghost_name=ghost_name,
+        reliability_score=0,
+        approval_status='approved'
+    )
+    
+    db.session.add(ghost_member)
+    db.session.commit()
+    
+    flash(f'Ghost user "{ghost_name}" added successfully. You can use this for rotation balancing.', 'success')
+    return redirect(url_for('group_detail', group_id=group_id))
+
+@app.route('/group/<int:group_id>/remove-ghost/<int:member_id>', methods=['POST'])
+@login_required
+def remove_ghost_user(group_id, member_id):
+    """Remove a ghost user from a group"""
+    from models import Member
+    
+    group = Group.query.get_or_404(group_id)
+    admin_membership = Member.query.filter_by(user_id=session['user_id'], group_id=group_id).first()
+    
+    if not admin_membership or admin_membership.role != 'admin':
+        flash('Only group admins can remove ghost users.', 'danger')
+        return redirect(url_for('group_detail', group_id=group_id))
+    
+    ghost_member = Member.query.get_or_404(member_id)
+    
+    if not ghost_member.is_ghost:
+        flash('This is not a ghost user.', 'danger')
+        return redirect(url_for('group_detail', group_id=group_id))
+    
+    db.session.delete(ghost_member)
+    db.session.commit()
+    
+    flash('Ghost user removed successfully.', 'success')
+    return redirect(url_for('group_detail', group_id=group_id))
+
+@app.route('/plaid/create-link-token', methods=['POST'])
+@login_required
+def create_plaid_link_token():
+    """Create Plaid Link token for bank account linking"""
+    try:
+        import plaid
+        from plaid.api import plaid_api
+        from plaid.model.link_token_create_request import LinkTokenCreateRequest
+        from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
+        from plaid.model.products import Products
+        from plaid.model.country_code import CountryCode
+        import os
+        
+        plaid_client_id = os.getenv('PLAID_CLIENT_ID')
+        plaid_secret = os.getenv('PLAID_SECRET')
+        plaid_env = os.getenv('PLAID_ENV', 'sandbox')
+        
+        if not plaid_client_id or not plaid_secret:
+            return jsonify({'error': 'Plaid API keys not configured'}), 400
+        
+        host = plaid.Environment.Sandbox if plaid_env == 'sandbox' else plaid.Environment.Production
+        
+        configuration = plaid.Configuration(
+            host=host,
+            api_key={
+                'clientId': plaid_client_id,
+                'secret': plaid_secret,
+                'plaidVersion': '2020-09-14'
+            }
+        )
+        
+        api_client = plaid.ApiClient(configuration)
+        client = plaid_api.PlaidApi(api_client)
+        
+        link_request = LinkTokenCreateRequest(
+            products=[Products('transactions'), Products('auth')],
+            client_name="TiKòb - Community Savings",
+            country_codes=[CountryCode('US')],
+            language='en',
+            user=LinkTokenCreateRequestUser(
+                client_user_id=str(session['user_id'])
+            )
+        )
+        
+        response = client.link_token_create(link_request)
+        return jsonify(response.to_dict())
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/plaid/exchange-token', methods=['POST'])
+@login_required
+def exchange_plaid_token():
+    """Exchange Plaid public token for access token"""
+    try:
+        import plaid
+        from plaid.api import plaid_api
+        from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchangeRequest
+        from models import PlaidAccount
+        import os
+        
+        public_token = request.json.get('public_token')
+        institution_name = request.json.get('institution_name', 'Bank')
+        
+        if not public_token:
+            return jsonify({'error': 'Public token required'}), 400
+        
+        plaid_client_id = os.getenv('PLAID_CLIENT_ID')
+        plaid_secret = os.getenv('PLAID_SECRET')
+        plaid_env = os.getenv('PLAID_ENV', 'sandbox')
+        
+        host = plaid.Environment.Sandbox if plaid_env == 'sandbox' else plaid.Environment.Production
+        
+        configuration = plaid.Configuration(
+            host=host,
+            api_key={
+                'clientId': plaid_client_id,
+                'secret': plaid_secret,
+                'plaidVersion': '2020-09-14'
+            }
+        )
+        
+        api_client = plaid.ApiClient(configuration)
+        client = plaid_api.PlaidApi(api_client)
+        
+        exchange_request = ItemPublicTokenExchangeRequest(public_token=public_token)
+        exchange_response = client.item_public_token_exchange(exchange_request)
+        
+        access_token = exchange_response['access_token']
+        item_id = exchange_response['item_id']
+        
+        plaid_account = PlaidAccount(
+            user_id=session['user_id'],
+            access_token=access_token,
+            item_id=item_id,
+            institution_name=institution_name,
+            is_active=True
+        )
+        
+        db.session.add(plaid_account)
+        db.session.commit()
+        
+        flash(f'Bank account linked successfully to {institution_name}!', 'success')
+        return jsonify({'success': True, 'item_id': item_id})
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/money-management')
+@login_required
+def money_management():
+    """Personal money management dashboard"""
+    from models import PlaidAccount, PersonalTransaction
+    from sqlalchemy import func
+    from datetime import datetime, timedelta
+    
+    plaid_accounts = PlaidAccount.query.filter_by(user_id=session['user_id'], is_active=True).all()
+    
+    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+    recent_transactions = PersonalTransaction.query.filter(
+        PersonalTransaction.user_id == session['user_id'],
+        PersonalTransaction.transaction_date >= thirty_days_ago
+    ).order_by(PersonalTransaction.transaction_date.desc()).limit(50).all()
+    
+    total_income = db.session.query(func.sum(PersonalTransaction.amount)).filter(
+        PersonalTransaction.user_id == session['user_id'],
+        PersonalTransaction.is_income == True,
+        PersonalTransaction.transaction_date >= thirty_days_ago
+    ).scalar() or 0
+    
+    total_expenses = db.session.query(func.sum(PersonalTransaction.amount)).filter(
+        PersonalTransaction.user_id == session['user_id'],
+        PersonalTransaction.is_income == False,
+        PersonalTransaction.transaction_date >= thirty_days_ago
+    ).scalar() or 0
+    
+    net_savings = total_income - total_expenses
+    
+    language = session.get('language', 'en')
+    proverb = get_random_proverb(language)
+    
+    return render_template('money_management.html',
+                          plaid_accounts=plaid_accounts,
+                          recent_transactions=recent_transactions,
+                          total_income=total_income,
+                          total_expenses=total_expenses,
+                          net_savings=net_savings,
+                          proverb=proverb)
+
 @app.route('/set-language/<lang>')
 @login_required
 def set_language(lang):
@@ -798,10 +1004,12 @@ def set_language(lang):
 @app.context_processor
 def utility_processor():
     """Make utility functions available to all templates"""
+    from traditions_data import get_tradition_theme_colors
     return {
         'get_user_initials': get_user_initials,
         'get_avatar_color': get_avatar_color,
-        'get_community_phrase': get_community_phrase
+        'get_community_phrase': get_community_phrase,
+        'get_tradition_theme_colors': get_tradition_theme_colors
     }
 
 if __name__ == '__main__':
