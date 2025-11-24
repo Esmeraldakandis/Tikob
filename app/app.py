@@ -8,6 +8,9 @@ from models import db, User, Group, Member, Transaction, Badge, UserBadge
 from werkzeug.utils import secure_filename
 from utils import convert_currency, get_random_quote, check_and_award_badges, generate_group_report_csv, get_financial_advice, seed_initial_data, cleanup_old_receipts
 from notifications import send_contribution_notification, send_approval_notification, send_badge_notification, send_payout_notification
+from xp_service import award_xp, update_streak, get_user_rank, check_challenge_progress
+from advice_service import get_latest_advice
+from currency_service import fetch_exchange_rates, convert_amount, get_user_currency, format_currency
 import os
 import secrets
 from datetime import datetime
@@ -362,14 +365,26 @@ def add_transaction(group_id):
                 member.user.username
             )
     
+    streak_days = update_streak(member.user_id)
+    xp_data = award_xp(member.user_id, 10, "contribution")
+    check_challenge_progress(member.user_id)
+    
     awarded_badges = check_and_award_badges(member.user_id)
+    
+    message_parts = ['Transaction recorded!']
+    if xp_data['leveled_up']:
+        message_parts.append(f"⬆️ Level {xp_data['current_level']}!")
+    if streak_days > 1:
+        message_parts.append(f"🔥 {streak_days}-day streak!")
+    message_parts.append(f"+{xp_data['xp_awarded']} XP")
+    
     if awarded_badges:
         badge_names = ', '.join([b.name for b in awarded_badges])
         for badge in awarded_badges:
             send_badge_notification(member.user.email, badge.name, badge.description)
-        flash(f'Transaction recorded! 🎉 New badges earned: {badge_names}', 'success')
-    else:
-        flash('Transaction recorded successfully!', 'success')
+        message_parts.append(f"🎉 Badges: {badge_names}")
+    
+    flash(' '.join(message_parts), 'success')
     
     return redirect(url_for('ledger', group_id=group_id))
 
@@ -559,3 +574,42 @@ def cleanup_receipts():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+
+@app.route('/leaderboard')
+@login_required
+def leaderboard():
+    from models import UserXP
+    from sqlalchemy.orm import joinedload
+    
+    try:
+        top_users = UserXP.query.options(
+            joinedload(UserXP.user)
+        ).order_by(UserXP.total_xp.desc()).limit(50).all()
+        
+        current_user_xp = UserXP.query.filter_by(user_id=session['user_id']).first()
+        rank_data = get_user_rank(session['user_id'])
+        
+        return render_template('leaderboard.html',
+                              top_users=top_users,
+                              current_user_xp=current_user_xp,
+                              rank_data=rank_data)
+    except Exception as e:
+        flash('Leaderboard features not yet initialized. Run database migrations first.', 'warning')
+        return redirect(url_for('dashboard'))
+
+@app.route('/initialize-beta-features', methods=['POST'])
+@login_required
+def initialize_beta_features():
+    """Initialize beta features for current user"""
+    from models import UserXP
+    
+    user_xp = UserXP.query.filter_by(user_id=session['user_id']).first()
+    if not user_xp:
+        user_xp = UserXP(user_id=session['user_id'], total_xp=0, current_level=1)
+        db.session.add(user_xp)
+        db.session.commit()
+    
+    fetch_exchange_rates()
+    
+    flash('Beta features initialized! Check out the leaderboard and your XP progress.', 'success')
+    return redirect(url_for('dashboard'))

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Leaderboard - TiKòb{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="luxury-heading">🏆 Community Leaderboard</h2>
+        <p class="text-muted">Top savers in the TiKòb community</p>
+    </div>
+</div>
+
+{% if current_user_xp %}
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card border-luxury">
+            <div class="card-body text-center">
+                <h3 class="luxury-accent">{{ rank_data.rank }}</h3>
+                <p class="text-muted mb-0">Your Rank</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-luxury">
+            <div class="card-body text-center">
+                <h3 class="luxury-accent">Level {{ current_user_xp.current_level }}</h3>
+                <p class="text-muted mb-0">Current Level</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-luxury">
+            <div class="card-body text-center">
+                <h3 class="luxury-accent">{{ current_user_xp.current_streak }} Days</h3>
+                <p class="text-muted mb-0">Current Streak</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>User</th>
+                                <th>Level</th>
+                                <th>Total XP</th>
+                                <th>Streak</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user_xp in top_users %}
+                            <tr {% if user_xp.user_id == session.user_id %}class="table-active"{% endif %}>
+                                <td><strong>{{ loop.index }}</strong></td>
+                                <td>
+                                    {{ user_xp.user.username }}
+                                    {% if loop.index == 1 %}
+                                        <span class="badge bg-warning">🥇</span>
+                                    {% elif loop.index == 2 %}
+                                        <span class="badge bg-secondary">🥈</span>
+                                    {% elif loop.index == 3 %}
+                                        <span class="badge" style="background-color: #CD7F32;">🥉</span>
+                                    {% endif %}
+                                </td>
+                                <td>Level {{ user_xp.current_level }}</td>
+                                <td>{{ user_xp.total_xp }} XP</td>
+                                <td>
+                                    {% if user_xp.current_streak > 0 %}
+                                        🔥 {{ user_xp.current_streak }} days
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h5>💡 How to Earn XP</h5>
+            <ul class="mb-0">
+                <li>🎯 Make a contribution: +10 XP</li>
+                <li>🔥 Daily streak bonus: +2-50 XP (based on streak length)</li>
+                <li>🏆 Complete challenges: +100-500 XP</li>
+                <li>⬆️ Level up every 100 XP!</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

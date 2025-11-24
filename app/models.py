@@ -95,3 +95,82 @@ class FinancialTip(db.Model):
     category = db.Column(db.String(50))
     is_motivational = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class UserXP(db.Model):
+    __tablename__ = 'user_xp'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    total_xp = db.Column(db.Integer, default=0)
+    current_level = db.Column(db.Integer, default=1)
+    current_streak = db.Column(db.Integer, default=0)
+    longest_streak = db.Column(db.Integer, default=0)
+    last_contribution_date = db.Column(db.DateTime)
+    
+    user = db.relationship('User', backref=db.backref('xp_profile', uselist=False))
+
+class ExchangeRate(db.Model):
+    __tablename__ = 'exchange_rate'
+    id = db.Column(db.Integer, primary_key=True)
+    base_currency = db.Column(db.String(3), default='USD')
+    target_currency = db.Column(db.String(3), nullable=False)
+    rate = db.Column(db.Float, nullable=False)
+    last_updated = db.Column(db.DateTime, default=datetime.utcnow)
+
+class UserCurrency(db.Model):
+    __tablename__ = 'user_currency'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    preferred_currency = db.Column(db.String(3), default='USD')
+    
+    user = db.relationship('User', backref=db.backref('currency_pref', uselist=False))
+
+class Challenge(db.Model):
+    __tablename__ = 'challenge'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    challenge_type = db.Column(db.String(50))
+    target_value = db.Column(db.Integer)
+    xp_reward = db.Column(db.Integer, default=100)
+    badge_id = db.Column(db.Integer, db.ForeignKey('badge.id'))
+    is_active = db.Column(db.Boolean, default=True)
+    
+    badge = db.relationship('Badge', backref='challenges')
+
+class UserChallenge(db.Model):
+    __tablename__ = 'user_challenge'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    challenge_id = db.Column(db.Integer, db.ForeignKey('challenge.id'), nullable=False)
+    progress = db.Column(db.Integer, default=0)
+    completed = db.Column(db.Boolean, default=False)
+    completed_date = db.Column(db.DateTime)
+    
+    user = db.relationship('User', backref='challenges')
+    challenge = db.relationship('Challenge', backref='user_challenges')
+
+class FinancialGoal(db.Model):
+    __tablename__ = 'financial_goal'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    goal_name = db.Column(db.String(100), nullable=False)
+    target_amount = db.Column(db.Float, nullable=False)
+    current_amount = db.Column(db.Float, default=0)
+    target_date = db.Column(db.DateTime)
+    goal_type = db.Column(db.String(50))
+    achieved = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', backref='financial_goals')
+
+class PersonalizedAdvice(db.Model):
+    __tablename__ = 'personalized_advice'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    advice_text = db.Column(db.Text, nullable=False)
+    advice_type = db.Column(db.String(50))
+    context_data = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    displayed = db.Column(db.Boolean, default=False)
+    
+    user = db.relationship('User', backref='personalized_advice')
