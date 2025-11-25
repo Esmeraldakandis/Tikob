@@ -11,6 +11,7 @@ dependencies = [
     "flask-sqlalchemy>=3.1.1",
     "flask-talisman>=1.1.0",
     "flask-wtf>=1.2.2",
+    "google-genai>=1.52.0",
     "gunicorn>=23.0.0",
     "plaid-python>=37.1.0",
     "psycopg2-binary>=2.9.11",

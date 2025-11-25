@@ -1,6 +1,7 @@
 modules = ["python-3.11", "postgresql-16"]
 [agent]
 expertMode = true
+integrations = ["python_gemini_ai_integrations:1.0.0"]
 
 [nix]
 channel = "stable-25_05"
@@ -32,6 +33,10 @@ waitForPort = 5000
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 33175
+externalPort = 3001
 
 [[ports]]
 localPort = 38419

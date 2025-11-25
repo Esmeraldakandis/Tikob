@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="haiti-emblem">
+  <defs>
+    <!-- Warm Gradient for Palm Tree -->
+    <linearGradient id="palmGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2D5A27"/>
+      <stop offset="100%" style="stop-color:#1a3a15"/>
+    </linearGradient>
+    
+    <!-- Trunk Gradient -->
+    <linearGradient id="trunkGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#8B4513"/>
+      <stop offset="50%" style="stop-color:#A0522D"/>
+      <stop offset="100%" style="stop-color:#8B4513"/>
+    </linearGradient>
+    
+    <!-- Golden Sunrise -->
+    <radialGradient id="sunriseGradient" cx="50%" cy="80%" r="60%">
+      <stop offset="0%" style="stop-color:#FFB627"/>
+      <stop offset="50%" style="stop-color:#FF9F1C"/>
+      <stop offset="100%" style="stop-color:#E63946"/>
+    </radialGradient>
+    
+    <!-- Ocean Gradient -->
+    <linearGradient id="oceanGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2EC4B6"/>
+      <stop offset="100%" style="stop-color:#1D3557"/>
+    </linearGradient>
+    
+    <!-- Cannon Gradient -->
+    <linearGradient id="cannonGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4A4A4A"/>
+      <stop offset="50%" style="stop-color:#2D2D2D"/>
+      <stop offset="100%" style="stop-color:#1A1A1A"/>
+    </linearGradient>
+    
+    <!-- Flag Gradients -->
+    <linearGradient id="blueFlag" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#00209F"/>
+      <stop offset="100%" style="stop-color:#001570"/>
+    </linearGradient>
+    
+    <linearGradient id="redFlag" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#D21034"/>
+      <stop offset="100%" style="stop-color:#A00D28"/>
+    </linearGradient>
+    
+    <!-- Drop Shadow -->
+    <filter id="emblemShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="4" stdDeviation="3" flood-color="rgba(0,0,0,0.3)"/>
+    </filter>
+    
+    <!-- Glow Effect -->
+    <filter id="goldenGlow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background Circle with Sunrise -->
+  <circle cx="100" cy="100" r="95" fill="url(#sunriseGradient)" opacity="0.15"/>
+  
+  <!-- Main Emblem Group -->
+  <g filter="url(#emblemShadow)">
+    
+    <!-- Base/Ground with Mountains -->
+    <path d="M40 145 Q60 130 80 138 Q100 125 120 138 Q140 130 160 145 L160 155 Q100 160 40 155 Z" 
+          fill="#6F4E37" opacity="0.9"/>
+    
+    <!-- Central Palm Tree Trunk -->
+    <path d="M95 145 Q98 120 100 85 Q102 120 105 145 Z" 
+          fill="url(#trunkGradient)" stroke="#5D3A1A" stroke-width="0.5"/>
+    
+    <!-- Palm Fronds - Left Side -->
+    <path d="M100 85 Q70 75 45 90 Q70 80 95 83" 
+          fill="url(#palmGradient)" stroke="#1a3a15" stroke-width="0.3"/>
+    <path d="M100 85 Q65 65 35 75 Q65 70 95 80" 
+          fill="url(#palmGradient)" stroke="#1a3a15" stroke-width="0.3"/>
+    <path d="M100 85 Q75 55 55 55 Q75 60 98 78" 
+          fill="url(#palmGradient)" stroke="#1a3a15" stroke-width="0.3"/>
+    
+    <!-- Palm Fronds - Right Side -->
+    <path d="M100 85 Q130 75 155 90 Q130 80 105 83" 
+          fill="url(#palmGradient)" stroke="#1a3a15" stroke-width="0.3"/>
+    <path d="M100 85 Q135 65 165 75 Q135 70 105 80" 
+          fill="url(#palmGradient)" stroke="#1a3a15" stroke-width="0.3"/>
+    <path d="M100 85 Q125 55 145 55 Q125 60 102 78" 
+          fill="url(#palmGradient)" stroke="#1a3a15" stroke-width="0.3"/>
+    
+    <!-- Top Fronds -->
+    <path d="M100 85 Q95 50 85 35 Q95 55 100 75" 
+          fill="url(#palmGradient)" stroke="#1a3a15" stroke-width="0.3"/>
+    <path d="M100 85 Q105 50 115 35 Q105 55 100 75" 
+          fill="url(#palmGradient)" stroke="#1a3a15" stroke-width="0.3"/>
+    
+    <!-- Left Cannon -->
+    <g transform="translate(45, 135) rotate(-20)">
+      <ellipse cx="0" cy="0" rx="18" ry="6" fill="url(#cannonGradient)"/>
+      <rect x="-5" y="-8" width="25" height="8" rx="2" fill="url(#cannonGradient)"/>
+      <circle cx="-5" cy="-4" r="3" fill="#FFB627"/>
+    </g>
+    
+    <!-- Right Cannon -->
+    <g transform="translate(155, 135) rotate(20)">
+      <ellipse cx="0" cy="0" rx="18" ry="6" fill="url(#cannonGradient)"/>
+      <rect x="-20" y="-8" width="25" height="8" rx="2" fill="url(#cannonGradient)"/>
+      <circle cx="5" cy="-4" r="3" fill="#FFB627"/>
+    </g>
+    
+    <!-- Left Flag -->
+    <g transform="translate(55, 60)">
+      <line x1="0" y1="0" x2="0" y2="50" stroke="#8B4513" stroke-width="2"/>
+      <path d="M0 5 L-25 15 L0 25 Z" fill="url(#blueFlag)"/>
+      <path d="M0 25 L-25 35 L0 45 Z" fill="url(#redFlag)"/>
+    </g>
+    
+    <!-- Right Flag -->
+    <g transform="translate(145, 60)">
+      <line x1="0" y1="0" x2="0" y2="50" stroke="#8B4513" stroke-width="2"/>
+      <path d="M0 5 L25 15 L0 25 Z" fill="url(#blueFlag)"/>
+      <path d="M0 25 L25 35 L0 45 Z" fill="url(#redFlag)"/>
+    </g>
+    
+    <!-- Phrygian Cap (Liberty Cap) on top of palm -->
+    <path d="M93 38 Q100 25 107 38 Q105 42 100 40 Q95 42 93 38" 
+          fill="#D21034" stroke="#A00D28" stroke-width="0.5"/>
+    
+    <!-- Cannonballs -->
+    <circle cx="35" cy="155" r="4" fill="#2D2D2D"/>
+    <circle cx="43" cy="158" r="4" fill="#2D2D2D"/>
+    <circle cx="39" cy="162" r="4" fill="#2D2D2D"/>
+    
+    <circle cx="165" cy="155" r="4" fill="#2D2D2D"/>
+    <circle cx="157" cy="158" r="4" fill="#2D2D2D"/>
+    <circle cx="161" cy="162" r="4" fill="#2D2D2D"/>
+    
+    <!-- Drums on sides -->
+    <ellipse cx="30" cy="145" rx="8" ry="12" fill="#A0522D" stroke="#5D3A1A" stroke-width="1"/>
+    <ellipse cx="170" cy="145" rx="8" ry="12" fill="#A0522D" stroke="#5D3A1A" stroke-width="1"/>
+    
+  </g>
+  
+  <!-- Motto Banner -->
+  <g filter="url(#goldenGlow)">
+    <path d="M25 170 Q100 180 175 170 L175 185 Q100 195 25 185 Z" 
+          fill="#FAF3E0" stroke="#FFB627" stroke-width="1.5"/>
+    <text x="100" y="181" 
+          font-family="'DM Serif Display', Georgia, serif" 
+          font-size="9" 
+          font-weight="600"
+          fill="#4A2C2A" 
+          text-anchor="middle">
+      L'UNION FAIT LA FORCE
+    </text>
+  </g>
+  
+  <!-- Decorative Stars -->
+  <g fill="#FFB627" opacity="0.8">
+    <polygon points="20,40 22,46 28,46 23,50 25,56 20,52 15,56 17,50 12,46 18,46" transform="scale(0.6) translate(10,30)"/>
+    <polygon points="20,40 22,46 28,46 23,50 25,56 20,52 15,56 17,50 12,46 18,46" transform="scale(0.6) translate(290,30)"/>
+  </g>
+  
+</svg>

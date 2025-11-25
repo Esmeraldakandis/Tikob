@@ -15,10 +15,17 @@ from currency_service import fetch_exchange_rates, convert_amount, get_user_curr
 from haitian_culture import get_random_proverb, get_financial_wisdom, get_community_phrase
 from avatar_helper import get_user_initials, get_avatar_color
 from ledger_service import LedgerService, ReconciliationService, TaxReportService, LedgerError
+from ai_service import generate_haitian_proverb, get_language_options, get_all_ui_texts, UI_TRANSLATIONS, SUPPORTED_LANGUAGES
 from decimal import Decimal
 import os
 import secrets
 from datetime import datetime, date
+from collections import defaultdict
+import time
+
+login_attempts = defaultdict(list)
+LOGIN_BLOCK_DURATION = 900
+MAX_LOGIN_ATTEMPTS = 5
 
 UPLOAD_FOLDER = 'app/uploads/receipts'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
@@ -89,8 +96,12 @@ def index():
     return redirect(url_for('login'))
 
 @app.route('/signup', methods=['GET', 'POST'])
-# @limiter.limit("5 per hour")  # Temporarily disabled
+@limiter.limit("10 per minute")
 def signup():
+    language = session.get('language', 'en')
+    t = get_all_ui_texts(language)
+    languages = get_language_options()
+    
     if request.method == 'POST':
         username = request.form.get('username')
         email = request.form.get('email')
@@ -112,26 +123,73 @@ def signup():
         flash('Account created successfully! Please log in.', 'success')
         return redirect(url_for('login'))
     
-    return render_template('signup.html')
+    return render_template('signup.html', t=t, languages=languages)
+
+def is_login_blocked(ip_address):
+    """Check if IP is blocked due to too many failed login attempts."""
+    current_time = time.time()
+    attempts = login_attempts[ip_address]
+    attempts = [t for t in attempts if current_time - t < LOGIN_BLOCK_DURATION]
+    login_attempts[ip_address] = attempts
+    return len(attempts) >= MAX_LOGIN_ATTEMPTS
+
+def record_failed_login(ip_address):
+    """Record a failed login attempt."""
+    login_attempts[ip_address].append(time.time())
+
+def clear_login_attempts(ip_address):
+    """Clear login attempts after successful login."""
+    login_attempts[ip_address] = []
+
+def get_block_time_remaining(ip_address):
+    """Get remaining block time in minutes."""
+    if not login_attempts[ip_address]:
+        return 0
+    oldest_attempt = min(login_attempts[ip_address])
+    elapsed = time.time() - oldest_attempt
+    remaining = LOGIN_BLOCK_DURATION - elapsed
+    return max(0, int(remaining / 60) + 1)
 
 @app.route('/login', methods=['GET', 'POST'])
-# @limiter.limit("10 per hour")  # Temporarily disabled
+@limiter.limit("30 per minute")
 def login():
+    ip_address = request.remote_addr
+    language = session.get('language', 'en')
+    t = get_all_ui_texts(language)
+    languages = get_language_options()
+    
+    login_blocked = is_login_blocked(ip_address)
+    block_minutes = get_block_time_remaining(ip_address) if login_blocked else 0
+    
     if request.method == 'POST':
+        if login_blocked:
+            flash('Too many failed attempts. Please wait before trying again.', 'danger')
+            return render_template('login.html', t=t, languages=languages, 
+                                 login_blocked=True, block_minutes=block_minutes)
+        
         username = request.form.get('username')
         password = request.form.get('password')
         
         user = User.query.filter_by(username=username).first()
         
         if user and user.check_password(password):
+            clear_login_attempts(ip_address)
             session['user_id'] = user.id
             session['username'] = user.username
             flash('Logged in successfully!', 'success')
             return redirect(url_for('dashboard'))
         else:
-            flash('Invalid username or password.', 'danger')
+            record_failed_login(ip_address)
+            remaining_attempts = MAX_LOGIN_ATTEMPTS - len(login_attempts[ip_address])
+            if remaining_attempts > 0:
+                flash(f'Invalid username or password. {remaining_attempts} attempts remaining.', 'danger')
+            else:
+                flash('Too many failed attempts. Please wait 15 minutes.', 'danger')
+                return render_template('login.html', t=t, languages=languages, 
+                                     login_blocked=True, block_minutes=15)
     
-    return render_template('login.html')
+    return render_template('login.html', t=t, languages=languages, 
+                         login_blocked=login_blocked, block_minutes=block_minutes)
 
 @app.route('/logout')
 def logout():
@@ -245,7 +303,10 @@ def create_group():
     
     from models import Tradition
     traditions = Tradition.query.all()
-    return render_template('create_group.html', traditions=traditions)
+    language = session.get('language', 'en')
+    t = get_all_ui_texts(language)
+    languages = get_language_options()
+    return render_template('create_group.html', traditions=traditions, t=t, languages=languages)
 
 @app.route('/join-group', methods=['GET', 'POST'])
 @login_required
@@ -1054,12 +1115,13 @@ def money_management():
                           proverb=proverb)
 
 @app.route('/set-language/<lang>')
-@login_required
 def set_language(lang):
-    if lang in ['en', 'ht']:
+    """Set language - works for logged in and guest users"""
+    if lang in SUPPORTED_LANGUAGES:
         session['language'] = lang
-        flash(get_community_phrase('welcome', lang), 'success')
-    return redirect(request.referrer or url_for('dashboard'))
+        if 'user_id' in session:
+            flash(get_community_phrase('welcome', lang if lang in ['en', 'ht'] else 'en'), 'success')
+    return redirect(request.referrer or url_for('login'))
 
 @app.route('/group/<int:group_id>/chat')
 @login_required
@@ -1102,6 +1164,31 @@ def random_proverb_api():
     language = session.get('language', 'en')
     proverb = get_random_proverb(language)
     return jsonify({'proverb': proverb})
+
+@app.route('/api/ai-proverb')
+def ai_proverb_api():
+    """API endpoint for AI-generated Haitian proverbs - works without login"""
+    try:
+        language = session.get('language', 'en')
+        proverb_data = generate_haitian_proverb()
+        
+        if language == 'ht':
+            return jsonify({
+                'proverb': {
+                    'text': proverb_data['creole'],
+                    'meaning': proverb_data['english']
+                }
+            })
+        else:
+            return jsonify({
+                'proverb': {
+                    'text': proverb_data['english'],
+                    'meaning': proverb_data['meaning'] or proverb_data['creole']
+                }
+            })
+    except Exception as e:
+        print(f"AI proverb error: {e}")
+        return jsonify({'proverb': {'text': 'Many hands make the load lighter', 'meaning': 'Together we are stronger'}})
 
 @socketio.on('join_group')
 def on_join_group(data):

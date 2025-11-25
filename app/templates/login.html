@@ -8,83 +8,235 @@
         <div class="lakou-card animate-in" style="padding: 2.5rem;">
             <!-- Logo & Welcome -->
             <div class="text-center mb-4">
-                <div style="font-size: 4rem;" class="mb-3 animate-float">🏠</div>
+                <!-- Beautiful Haitian Coat of Arms -->
+                <div class="haiti-emblem-container mb-3">
+                    <img src="{{ url_for('static', filename='images/haiti-emblem.svg') }}" 
+                         alt="TiKòb - L'Union Fait La Force" 
+                         class="haiti-emblem"
+                         id="haitiEmblem">
+                </div>
                 <h1 class="lakou-title mb-2" style="font-size: 2.25rem;">TiKòb</h1>
                 <p class="lakou-body" style="color: var(--text-secondary);">
-                    {% if session.get('language') == 'ht' %}
-                    Ekonomi Kominote, Senp e Fasil
-                    {% else %}
-                    Community Savings Made Simple
-                    {% endif %}
+                    {{ t.community_savings if t else 'Community Savings Made Simple' }}
                 </p>
             </div>
             
-            <!-- Proverb -->
-            <div class="pwovèb mb-4" style="padding: 1rem 1.25rem;">
-                {% if session.get('language') == 'ht' %}
-                "Men anpil, chay pa lou"
-                <span class="pwovèb-meaning">Ansanm nou pi fò</span>
-                {% else %}
-                "Many hands make the load lighter"
-                <span class="pwovèb-meaning">Together we are stronger</span>
-                {% endif %}
+            <!-- Dynamic Proverb -->
+            <div class="pwovèb mb-4" style="padding: 1rem 1.25rem;" id="proverbDisplay">
+                <span id="proverbText">"{{ t.many_hands if t else 'Many hands make the load lighter' }}"</span>
+                <span class="pwovèb-meaning" id="proverbMeaning">{{ t.together_stronger if t else 'Together we are stronger' }}</span>
             </div>
             
             <!-- Login Form -->
-            <form method="POST" action="{{ url_for('login') }}" class="form-lakou">
+            <form method="POST" action="{{ url_for('login') }}" class="form-lakou" id="loginForm">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 
                 <div class="mb-3">
                     <label for="username" class="form-label">
-                        {% if session.get('language') == 'ht' %}Non Itilizatè{% else %}Username{% endif %}
+                        {{ t.username if t else 'Username' }}
                     </label>
                     <input type="text" 
                            class="form-control" 
                            id="username" 
                            name="username" 
                            autocomplete="username"
-                           placeholder="{% if session.get('language') == 'ht' %}Antre non ou{% else %}Enter your username{% endif %}"
+                           placeholder="{{ t.enter_username if t else 'Enter your username' }}"
                            required>
                 </div>
                 
                 <div class="mb-4">
                     <label for="password" class="form-label">
-                        {% if session.get('language') == 'ht' %}Modpas{% else %}Password{% endif %}
+                        {{ t.password if t else 'Password' }}
                     </label>
                     <input type="password" 
                            class="form-control" 
                            id="password" 
                            name="password" 
                            autocomplete="current-password"
-                           placeholder="{% if session.get('language') == 'ht' %}Antre modpas ou{% else %}Enter your password{% endif %}"
+                           placeholder="{{ t.enter_password if t else 'Enter your password' }}"
                            required>
                 </div>
                 
-                <button type="submit" class="btn-konbit btn-konbit-primary w-100 mb-3">
-                    {% if session.get('language') == 'ht' %}Konekte{% else %}Login{% endif %}
+                {% if login_blocked %}
+                <div class="alert-lakou alert-lakou-error mb-3">
+                    <span>⚠️</span>
+                    <div>
+                        <strong>Too many attempts</strong>
+                        <p class="mb-0" style="font-size: 0.9rem;">Please wait {{ block_minutes }} minutes before trying again.</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <button type="submit" class="btn-konbit btn-konbit-primary w-100 mb-3" id="loginBtn" {% if login_blocked %}disabled{% endif %}>
+                    {{ t.login if t else 'Login' }}
                 </button>
             </form>
             
             <div style="text-align: center; padding-top: 1rem; border-top: 1px solid rgba(111, 78, 55, 0.1);">
                 <p class="lakou-body mb-0" style="color: var(--text-secondary);">
-                    {% if session.get('language') == 'ht' %}
-                    Pa gen kont? <a href="{{ url_for('signup') }}" style="color: var(--mango); font-weight: 600;">Enskri</a>
-                    {% else %}
-                    Don't have an account? <a href="{{ url_for('signup') }}" style="color: var(--mango); font-weight: 600;">Sign up</a>
-                    {% endif %}
+                    {{ t.dont_have_account if t else "Don't have an account?" }}
+                    <a href="{{ url_for('signup') }}" style="color: var(--mango); font-weight: 600;">
+                        {{ t.signup if t else 'Sign up' }}
+                    </a>
                 </p>
             </div>
         </div>
         
-        <!-- Language Switcher -->
-        <div class="text-center mt-4">
-            <a href="{{ url_for('set_language', lang='en') }}" class="badge-cultural badge-ocean me-2 text-decoration-none">
-                🇺🇸 English
-            </a>
-            <a href="{{ url_for('set_language', lang='ht') }}" class="badge-cultural badge-mango text-decoration-none">
-                🇭🇹 Kreyòl
-            </a>
+        <!-- 12 Language Switcher -->
+        <div class="language-switcher mt-4">
+            <div class="language-grid">
+                {% for lang in languages %}
+                <a href="{{ url_for('set_language', lang=lang.code) }}" 
+                   class="language-option {% if session.get('language') == lang.code %}active{% endif %}"
+                   title="{{ lang.name }}">
+                    <span class="lang-flag">{{ lang.flag }}</span>
+                    <span class="lang-code">{{ lang.code|upper }}</span>
+                </a>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+.haiti-emblem-container {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.haiti-emblem {
+    width: 100%;
+    height: 100%;
+    transition: all 0.6s var(--ease-smooth);
+    filter: drop-shadow(0 4px 12px rgba(255, 159, 28, 0.2));
+}
+
+.haiti-emblem.success-spin {
+    animation: celebrationPulse 1.5s ease-in-out;
+}
+
+@keyframes celebrationPulse {
+    0% { transform: scale(1); filter: drop-shadow(0 4px 12px rgba(255, 159, 28, 0.2)); }
+    25% { transform: scale(1.15); filter: drop-shadow(0 8px 25px rgba(255, 159, 28, 0.5)); }
+    50% { transform: scale(1.1); filter: drop-shadow(0 6px 20px rgba(46, 196, 182, 0.4)); }
+    75% { transform: scale(1.12); filter: drop-shadow(0 8px 25px rgba(255, 159, 28, 0.5)); }
+    100% { transform: scale(1); filter: drop-shadow(0 4px 12px rgba(255, 159, 28, 0.2)); }
+}
+
+.language-switcher {
+    text-align: center;
+}
+
+.language-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    max-width: 320px;
+    margin: 0 auto;
+}
+
+.language-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem 0.6rem;
+    background: var(--surface);
+    border: 1px solid rgba(111, 78, 55, 0.15);
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.3s var(--ease-smooth);
+    min-width: 52px;
+}
+
+.language-option:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-soft);
+    border-color: var(--mango);
+}
+
+.language-option.active {
+    background: linear-gradient(135deg, rgba(255, 159, 28, 0.15) 0%, rgba(230, 57, 70, 0.1) 100%);
+    border-color: var(--mango);
+    box-shadow: 0 0 0 2px rgba(255, 159, 28, 0.2);
+}
+
+.lang-flag {
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.lang-code {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-top: 0.2rem;
+    letter-spacing: 0.5px;
+}
+
+.language-option.active .lang-code {
+    color: var(--mango);
+}
+
+[data-theme="dark"] .language-option {
+    background: var(--surface-warm);
+}
+
+@media (max-width: 400px) {
+    .language-grid {
+        gap: 0.35rem;
+    }
+    .language-option {
+        min-width: 46px;
+        padding: 0.4rem 0.5rem;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('loginForm');
+    const emblem = document.getElementById('haitiEmblem');
+    
+    // Check for success message (login success indicator)
+    {% if login_success %}
+    if (emblem) {
+        emblem.classList.add('success-spin');
+    }
+    {% endif %}
+    
+    // Fetch new proverb every 15 seconds
+    function fetchNewProverb() {
+        fetch('/api/ai-proverb')
+            .then(response => response.json())
+            .then(data => {
+                if (data.proverb) {
+                    const proverbText = document.getElementById('proverbText');
+                    const proverbMeaning = document.getElementById('proverbMeaning');
+                    
+                    // Fade out
+                    proverbText.style.opacity = '0';
+                    proverbMeaning.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        proverbText.textContent = '"' + data.proverb.text + '"';
+                        proverbMeaning.textContent = data.proverb.meaning;
+                        
+                        // Fade in
+                        proverbText.style.opacity = '1';
+                        proverbMeaning.style.opacity = '1';
+                    }, 300);
+                }
+            })
+            .catch(err => console.log('Proverb fetch skipped:', err));
+    }
+    
+    // Start proverb rotation
+    setInterval(fetchNewProverb, 15000);
+});
+</script>
 {% endblock %}
