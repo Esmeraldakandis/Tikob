@@ -19,10 +19,30 @@
             </div>
         </div>
         <div class="col-lg-4 text-center d-none d-lg-block">
-            <div class="animate-float" style="font-size: 5rem;">🏠</div>
+            <div class="animate-float">
+                <img src="{{ url_for('static', filename='images/haiti-emblem.svg') }}" alt="TiKòb" style="width: 120px; height: 120px; filter: drop-shadow(0 4px 12px rgba(255, 159, 28, 0.3));">
+            </div>
         </div>
     </div>
 </div>
+
+<!-- Survey Prompt for New Users -->
+{% if not has_survey %}
+<div class="lakou-card-featured mb-4 animate-in" data-aos="fade-up" style="background: linear-gradient(135deg, rgba(255, 159, 28, 0.1) 0%, rgba(46, 196, 182, 0.08) 100%); border: 2px solid var(--mango);">
+    <div class="d-flex align-items-center gap-3">
+        <div style="font-size: 2.5rem;">📋</div>
+        <div class="flex-grow-1">
+            <h5 class="lakou-heading mb-1">{% if language == 'ht' %}Konplete Sondaj Finansye Ou{% else %}Complete Your Financial Survey{% endif %}</h5>
+            <p class="lakou-body mb-0" style="color: var(--text-secondary);">
+                {% if language == 'ht' %}Jwenn rekòmandasyon gwoup pèsonalize ak konsèy finansye.{% else %}Get personalized group recommendations and financial insights.{% endif %}
+            </p>
+        </div>
+        <a href="{{ url_for('financial_survey') }}" class="btn-konbit btn-konbit-primary">
+            {% if language == 'ht' %}Kòmanse{% else %}Start{% endif %} →
+        </a>
+    </div>
+</div>
+{% endif %}
 
 <!-- Quick Actions - Konbit Style -->
 <div class="lakou-card mb-4" data-aos="fade-up" data-aos-delay="100">

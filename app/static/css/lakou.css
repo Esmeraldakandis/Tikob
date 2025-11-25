@@ -459,6 +459,48 @@ body {
     font-size: 0.85rem;
 }
 
+/* Dark mode form controls */
+[data-theme="dark"] .form-lakou .form-control {
+    background: var(--surface-warm);
+    border-color: rgba(250, 243, 224, 0.2);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-lakou .form-control::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+[data-theme="dark"] .form-lakou .form-control:focus {
+    border-color: var(--mango);
+    background: var(--surface);
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] select.form-control,
+[data-theme="dark"] textarea.form-control {
+    background: var(--surface-warm);
+    border-color: rgba(250, 243, 224, 0.15);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] select.form-control:focus,
+[data-theme="dark"] textarea.form-control:focus {
+    background: var(--surface);
+    border-color: var(--mango);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-control::placeholder {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] select.form-control option {
+    background: var(--surface);
+    color: var(--text-primary);
+}
+
 /* ===== PROGRESS BARS - Journey Together ===== */
 .progress-lakou {
     height: 12px;

@@ -177,6 +177,11 @@ def login():
             session['user_id'] = user.id
             session['username'] = user.username
             flash('Logged in successfully!', 'success')
+            
+            from models import UserFinancialProfile
+            has_profile = UserFinancialProfile.query.filter_by(user_id=user.id).first()
+            if not has_profile:
+                return redirect(url_for('financial_survey'))
             return redirect(url_for('dashboard'))
         else:
             record_failed_login(ip_address)
@@ -251,12 +256,16 @@ def dashboard():
         user_id=user.id
     ).order_by(UserBadge.earned_at.desc()).limit(3).all()
     
+    from models import UserFinancialProfile
+    has_survey = UserFinancialProfile.query.filter_by(user_id=user.id).first() is not None
+    
     return render_template('dashboard.html', 
                           groups_data=groups_data, 
                           proverb=proverb,
                           advice=advice,
                           recent_badges=recent_badges,
-                          language=language)
+                          language=language,
+                          has_survey=has_survey)
 
 @app.route('/create-group', methods=['GET', 'POST'])
 @login_required

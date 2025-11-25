@@ -84,21 +84,20 @@
             {{ user_badge.badge.icon }}
         </div>
         
-        <div class="badge-name">{{ user_badge.badge.name }}</div>
-        <div class="badge-description">{{ user_badge.badge.description }}</div>
-        <div class="mt-3 text-success small">
-            ✅ Earned: {{ user_badge.earned_at.strftime('%b %d, %Y') }}
+        <div class="badge-info">
+            <div class="badge-name">{{ user_badge.badge.name }}</div>
+            <div class="badge-date text-success">
+                ✓ {{ user_badge.earned_at.strftime('%b %d, %Y') }}
+            </div>
         </div>
     </div>
     {% endfor %}
     
     {% if user_badges|length == 0 %}
-    <div class="col-12">
-        <div class="glass-card text-center">
-            <p class="text-muted mb-0">
-                🎯 Keep contributing to earn your first badge!
-            </p>
-        </div>
+    <div class="glass-card text-center" style="width: 100%;">
+        <p class="text-muted mb-0">
+            🎯 Keep contributing to earn your first badge!
+        </p>
     </div>
     {% endif %}
 </div>
@@ -121,24 +120,25 @@
                 {{ badge.icon }}
             </div>
             
-            <div class="badge-name">{{ badge.name }}</div>
-            <div class="badge-description">{{ badge.description }}</div>
-            <div class="mt-3 text-warning small">
-                {% if badge.criteria_type == 'total_contributions' %}
-                    🎯 Save ${{ badge.criteria_value }}
-                {% elif badge.criteria_type == 'group_count' %}
-                    🎯 Join {{ badge.criteria_value }} groups
-                {% elif badge.criteria_type == 'streak' %}
-                    🎯 {{ badge.criteria_value }} week streak
-                {% elif badge.criteria_type == 'high_contribution' %}
-                    🎯 Weekly contribution ≥ ${{ badge.criteria_value }}
-                {% elif badge.criteria_type == 'loyalty' %}
-                    🎯 Active for {{ badge.criteria_value }} months
-                {% elif badge.criteria_type == 'reputation' %}
-                    🎯 Reputation score ≥ {{ badge.criteria_value }}
-                {% else %}
-                    🎯 Complete requirement to unlock
-                {% endif %}
+            <div class="badge-info">
+                <div class="badge-name">{{ badge.name }}</div>
+                <div class="badge-goal text-warning">
+                    {% if badge.criteria_type == 'total_contributions' %}
+                        🎯 ${{ badge.criteria_value }}
+                    {% elif badge.criteria_type == 'group_count' %}
+                        🎯 {{ badge.criteria_value }} groups
+                    {% elif badge.criteria_type == 'streak' %}
+                        🎯 {{ badge.criteria_value }}wk streak
+                    {% elif badge.criteria_type == 'high_contribution' %}
+                        🎯 ≥${{ badge.criteria_value }}/wk
+                    {% elif badge.criteria_type == 'loyalty' %}
+                        🎯 {{ badge.criteria_value }}mo active
+                    {% elif badge.criteria_type == 'reputation' %}
+                        🎯 Rep ≥{{ badge.criteria_value }}
+                    {% else %}
+                        🎯 Unlock
+                    {% endif %}
+                </div>
             </div>
         </div>
         {% endif %}
