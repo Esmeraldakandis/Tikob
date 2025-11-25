@@ -85,7 +85,7 @@ def index():
     return redirect(url_for('login'))
 
 @app.route('/signup', methods=['GET', 'POST'])
-@limiter.limit("5 per hour")
+# @limiter.limit("5 per hour")  # Temporarily disabled
 def signup():
     if request.method == 'POST':
         username = request.form.get('username')
@@ -111,7 +111,7 @@ def signup():
     return render_template('signup.html')
 
 @app.route('/login', methods=['GET', 'POST'])
-@limiter.limit("10 per hour")
+# @limiter.limit("10 per hour")  # Temporarily disabled
 def login():
     if request.method == 'POST':
         username = request.form.get('username')
