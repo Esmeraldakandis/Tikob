@@ -36,7 +36,60 @@ def convert_currency(amount, from_currency, to_currency):
 def get_random_quote():
     return random.choice(MOTIVATIONAL_QUOTES)
 
+def calculate_user_streak(user_id):
+    """Calculate the current contribution streak for a user (in weeks)."""
+    from models import UserXP
+    
+    user_xp = UserXP.query.filter_by(user_id=user_id).first()
+    if user_xp:
+        return user_xp.current_streak // 7
+    return 0
+
+def calculate_highest_single_contribution(user_id):
+    """Get the highest single contribution amount for a user."""
+    highest = db.session.query(db.func.max(Transaction.amount)).join(
+        Member
+    ).filter(
+        Member.user_id == user_id,
+        Transaction.transaction_type == 'contribution'
+    ).scalar() or 0
+    return highest
+
+def calculate_membership_duration_months(user_id):
+    """Calculate how many months the user has been active in any group."""
+    earliest_membership = Member.query.filter_by(
+        user_id=user_id, is_active=True
+    ).order_by(Member.joined_at.asc()).first()
+    
+    if earliest_membership:
+        days_active = (datetime.utcnow() - earliest_membership.joined_at).days
+        return days_active // 30
+    return 0
+
+def calculate_reputation_score_for_badges(user_id):
+    """Calculate reputation score for badge awarding (simplified version)."""
+    memberships = Member.query.filter_by(user_id=user_id, is_active=True).all()
+    
+    if not memberships:
+        return 0
+    
+    contribution_counts = []
+    for membership in memberships:
+        count = Transaction.query.filter_by(
+            member_id=membership.id,
+            transaction_type='contribution'
+        ).count()
+        contribution_counts.append(count)
+    
+    avg_contributions = sum(contribution_counts) / len(contribution_counts) if contribution_counts else 0
+    
+    consistency_score = min(avg_contributions * 10, 60)
+    activity_score = min(len(memberships) * 10, 40)
+    
+    return int(consistency_score + activity_score)
+
 def check_and_award_badges(user_id):
+    """Check and award all types of badges to a user."""
     user_badges = UserBadge.query.filter_by(user_id=user_id).all()
     awarded_badge_ids = [ub.badge_id for ub in user_badges]
     
@@ -48,6 +101,11 @@ def check_and_award_badges(user_id):
     ).scalar() or 0
     
     memberships_count = Member.query.filter_by(user_id=user_id, is_active=True).count()
+    
+    streak_weeks = calculate_user_streak(user_id)
+    highest_contribution = calculate_highest_single_contribution(user_id)
+    loyalty_months = calculate_membership_duration_months(user_id)
+    reputation_score = calculate_reputation_score_for_badges(user_id)
     
     badges_to_award = []
     all_badges = Badge.query.all()
@@ -61,6 +119,18 @@ def check_and_award_badges(user_id):
                 badges_to_award.append(badge)
         elif badge.criteria_type == 'group_count':
             if memberships_count >= badge.criteria_value:
+                badges_to_award.append(badge)
+        elif badge.criteria_type == 'streak':
+            if streak_weeks >= badge.criteria_value:
+                badges_to_award.append(badge)
+        elif badge.criteria_type == 'high_contribution':
+            if highest_contribution >= badge.criteria_value:
+                badges_to_award.append(badge)
+        elif badge.criteria_type == 'loyalty':
+            if loyalty_months >= badge.criteria_value:
+                badges_to_award.append(badge)
+        elif badge.criteria_type == 'reputation':
+            if reputation_score >= badge.criteria_value:
                 badges_to_award.append(badge)
     
     for badge in badges_to_award:
@@ -182,6 +252,17 @@ def seed_initial_data():
             Badge(name='Savings Champion', description='Contributed $1000 or more', icon='👑', criteria_type='total_contributions', criteria_value=1000),
             Badge(name='Community Builder', description='Joined 3 groups', icon='🤝', criteria_type='group_count', criteria_value=3),
             Badge(name='Group Leader', description='Joined 5 groups', icon='⭐', criteria_type='group_count', criteria_value=5),
+            Badge(name='Consistency Bronze', description='4-week contribution streak', icon='🔥', criteria_type='streak', criteria_value=4),
+            Badge(name='Consistency Silver', description='8-week contribution streak', icon='🔥', criteria_type='streak', criteria_value=8),
+            Badge(name='Consistency Gold', description='12-week contribution streak', icon='🏆', criteria_type='streak', criteria_value=12),
+            Badge(name='High Roller Bronze', description='Single contribution of $250+', icon='💎', criteria_type='high_contribution', criteria_value=250),
+            Badge(name='High Roller Gold', description='Single contribution of $500+', icon='💎', criteria_type='high_contribution', criteria_value=500),
+            Badge(name='High Roller Platinum', description='Single contribution of $1000+', icon='👑', criteria_type='high_contribution', criteria_value=1000),
+            Badge(name='Loyalty Bronze', description='Active member for 3+ months', icon='❤️', criteria_type='loyalty', criteria_value=3),
+            Badge(name='Loyalty Silver', description='Active member for 6+ months', icon='💜', criteria_type='loyalty', criteria_value=6),
+            Badge(name='Loyalty Gold', description='Active member for 12+ months', icon='💛', criteria_type='loyalty', criteria_value=12),
+            Badge(name='Elite Contributor', description='Reputation score of 80+', icon='🎖️', criteria_type='reputation', criteria_value=80),
+            Badge(name='Legend Status', description='Reputation score of 95+', icon='🏅', criteria_type='reputation', criteria_value=95),
         ]
         db.session.add_all(badges)
     
