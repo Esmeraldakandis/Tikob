@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}TiKòb{% endblock %}</title>
     
-    <!-- Premium Fonts -->
+    <!-- Lakou Design System Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Source+Sans+3:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
     
     <!-- Bootstrap & Styles -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -16,57 +16,79 @@
     <!-- AOS Animation Library -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     
-    <!-- Custom Styles -->
+    <!-- Custom Styles - Lakou Cultural Experience -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/premium.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/lakou.css') }}">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
     {% if session.user_id %}
-    <nav class="navbar navbar-expand-lg navbar-dark">
+    <nav class="nav-lakou navbar navbar-expand-lg">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('dashboard') }}">✨ TIKÒB</a>
+            <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+                <span style="font-size: 1.3rem;">🏠</span> TiKòb
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard') }}">💰 Dashboard</a>
+                        <a class="nav-link" href="{{ url_for('dashboard') }}">
+                            <span>🏡</span> Dashboard
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin_dashboard') }}">👔 Admin</a>
+                        <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
+                            <span>👔</span> Admin
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('my_badges') }}">🏆 Badges</a>
+                        <a class="nav-link" href="{{ url_for('my_badges') }}">
+                            <span>🏅</span> Badges
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('create_group') }}">➕ Create Group</a>
+                        <a class="nav-link" href="{{ url_for('create_group') }}">
+                            <span>➕</span> Create
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('join_group') }}">🤝 Join Group</a>
+                        <a class="nav-link" href="{{ url_for('join_group') }}">
+                            <span>🤝</span> Join
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('leaderboard') }}">🏆 Leaderboard</a>
+                        <a class="nav-link" href="{{ url_for('leaderboard') }}">
+                            <span>🏆</span> Leaders
+                        </a>
                     </li>
-                    <li class="nav-item dropdown">
+                    <li class="nav-item dropdown dropdown-lakou">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             🌐 {% if session.get('language') == 'ht' %}Kreyòl{% else %}English{% endif %}
                         </a>
-                        <ul class="dropdown-menu">
+                        <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="{{ url_for('set_language', lang='en') }}">🇺🇸 English</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('set_language', lang='ht') }}">🇭🇹 Kreyòl Ayisyen</a></li>
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" id="darkModeToggle" title="Toggle dark mode">
+                        <a class="nav-link" href="#" id="darkModeToggle" title="Toggle theme">
                             <span class="dark-mode-icon">🌙</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <span class="nav-link">👤 {{ session.username }}</span>
+                        <span class="nav-link d-flex align-items-center gap-2">
+                            <span class="avatar-lakou avatar-mango" style="width: 32px; height: 32px; font-size: 0.75rem;">
+                                {{ session.username[:2]|upper }}
+                            </span>
+                            <span class="d-none d-lg-inline">{{ session.username }}</span>
+                        </span>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('logout') }}">🚪 Logout</a>
+                        <a class="nav-link" href="{{ url_for('logout') }}">
+                            <span>👋</span> <span class="d-none d-md-inline">Logout</span>
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -74,20 +96,44 @@
     </nav>
     {% endif %}
 
-    <div class="container mt-4">
+    <main class="container mt-4 mb-5">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
+                <div class="stagger-in">
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <div class="alert-lakou alert-lakou-{% if category == 'success' %}success{% elif category == 'warning' %}warning{% elif category == 'danger' or category == 'error' %}error{% else %}info{% endif %} mb-3" role="alert">
+                        <span class="flex-shrink-0">
+                            {% if category == 'success' %}✓{% elif category == 'warning' %}⚠{% elif category == 'danger' or category == 'error' %}✗{% else %}ℹ{% endif %}
+                        </span>
+                        <span>{{ message }}</span>
                     </div>
                 {% endfor %}
+                </div>
             {% endif %}
         {% endwith %}
 
         {% block content %}{% endblock %}
-    </div>
+    </main>
+
+    <!-- Footer -->
+    {% if session.user_id %}
+    <footer class="py-4" style="background: var(--surface); border-top: 1px solid rgba(111, 78, 55, 0.1);">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                    <span class="lakou-body" style="color: var(--text-secondary);">
+                        🏠 TiKòb - {% if session.get('language') == 'ht' %}Ansanm nou pi fò{% else %}Together we are stronger{% endif %}
+                    </span>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <a href="{{ url_for('dashboard') }}" class="text-decoration-none me-3" style="color: var(--text-secondary);">Home</a>
+                    <a href="{{ url_for('leaderboard') }}" class="text-decoration-none me-3" style="color: var(--text-secondary);">Community</a>
+                    <a href="{{ url_for('my_badges') }}" class="text-decoration-none" style="color: var(--text-secondary);">Achievements</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    {% endif %}
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
@@ -98,16 +144,14 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
     <script>
-        // Initialize AOS animations
+        // Initialize AOS animations with smooth settings
         AOS.init({
-            duration: 800,
+            duration: 600,
             easing: 'ease-out-cubic',
             once: true,
-            offset: 50
+            offset: 30
         });
-    </script>
-    
-    <script>
+        
         // Dark Mode Toggle
         const darkModeToggle = document.getElementById('darkModeToggle');
         const darkModeIcon = document.querySelector('.dark-mode-icon');
@@ -137,6 +181,19 @@
                 }
             });
         }
+        
+        // Smooth scroll for internal links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
     </script>
+    
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

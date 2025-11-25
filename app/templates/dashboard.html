@@ -4,94 +4,108 @@
 
 {% block content %}
 
-<!-- Animated Background Particles -->
-<div class="particles-bg">
-    <div class="particle" style="width: 300px; height: 300px; left: 10%; top: 20%; animation-delay: 0s;"></div>
-    <div class="particle" style="width: 200px; height: 200px; right: 15%; top: 60%; animation-delay: 5s;"></div>
-    <div class="particle" style="width: 150px; height: 150px; left: 70%; top: 30%; animation-delay: 8s;"></div>
+<!-- Welcome Hero with Haitian Proverb -->
+<div class="hero-lakou mb-4 animate-in" data-aos="fade-down">
+    <div class="row align-items-center">
+        <div class="col-lg-8">
+            <h1 class="hero-title mb-2">
+                {% if language == 'ht' %}Byenveni, {{ session.username }}!{% else %}Welcome back, {{ session.username }}!{% endif %}
+            </h1>
+            <div class="pwovèb mb-0">
+                {{ proverb.text }}
+                {% if proverb.meaning %}
+                    <span class="pwovèb-meaning">{{ proverb.meaning }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-lg-4 text-center d-none d-lg-block">
+            <div class="animate-float" style="font-size: 5rem;">🏠</div>
+        </div>
+    </div>
 </div>
 
-<!-- Motivational Quote with Glassmorphism -->
-<div class="glass-card mb-4" data-aos="fade-down">
-    <div class="proverb-text premium-heading" style="font-size: 1.1rem; margin-bottom: 0.5rem;">{{ proverb.text }}</div>
-    {% if language == 'en' and proverb.original %}
-        <div class="proverb-original mt-2 text-muted" style="font-size: 0.9em;">— {{ proverb.original }}</div>
-    {% elif language == 'ht' and proverb.translation %}
-        <div class="proverb-translation mt-2 text-muted" style="font-size: 0.9em;">— {{ proverb.translation }}</div>
-    {% endif %}
-    {% if proverb.meaning %}
-        <div class="proverb-meaning mt-2 premium-body" style="font-size: 0.85em; font-style: normal;">💡 {{ proverb.meaning }}</div>
-    {% endif %}
-</div>
-
-<!-- Quick Actions Widget with Premium Design -->
-<div class="glass-card mb-4" data-aos="fade-up" data-aos-delay="100">
-    <h5 class="premium-subheading mb-3">⚡ Quick Actions</h5>
-    <div class="row g-3">
+<!-- Quick Actions - Konbit Style -->
+<div class="lakou-card mb-4" data-aos="fade-up" data-aos-delay="100">
+    <h5 class="lakou-heading mb-3 d-flex align-items-center gap-2">
+        <span>⚡</span> {% if language == 'ht' %}Aksyon Rapid{% else %}Quick Actions{% endif %}
+    </h5>
+    <div class="row g-3 stagger-in">
         <div class="col-md-3 col-6">
-            <a href="{{ url_for('create_group') }}" class="quick-action-premium">
-                <span class="quick-action-icon-premium">➕</span>
-                <span class="premium-body">Create Group</span>
+            <a href="{{ url_for('create_group') }}" class="lakou-card h-100 text-decoration-none text-center interactive-tap">
+                <div style="font-size: 2.5rem;" class="mb-2">➕</div>
+                <span class="lakou-body d-block">{% if language == 'ht' %}Kreye Gwoup{% else %}Create Group{% endif %}</span>
             </a>
         </div>
         <div class="col-md-3 col-6">
-            <a href="{{ url_for('join_group') }}" class="quick-action-premium">
-                <span class="quick-action-icon-premium">🤝</span>
-                <span class="premium-body">Join Group</span>
+            <a href="{{ url_for('join_group') }}" class="lakou-card h-100 text-decoration-none text-center interactive-tap">
+                <div style="font-size: 2.5rem;" class="mb-2">🤝</div>
+                <span class="lakou-body d-block">{% if language == 'ht' %}Jwenn Gwoup{% else %}Join Group{% endif %}</span>
             </a>
         </div>
         <div class="col-md-3 col-6">
-            <a href="{{ url_for('leaderboard') }}" class="quick-action-premium">
-                <span class="quick-action-icon-premium">🏆</span>
-                <span class="premium-body">Leaderboard</span>
+            <a href="{{ url_for('leaderboard') }}" class="lakou-card h-100 text-decoration-none text-center interactive-tap">
+                <div style="font-size: 2.5rem;" class="mb-2">🏆</div>
+                <span class="lakou-body d-block">{% if language == 'ht' %}Lidè yo{% else %}Leaderboard{% endif %}</span>
             </a>
         </div>
         <div class="col-md-3 col-6">
-            <a href="{{ url_for('my_badges') }}" class="quick-action-premium">
-                <span class="quick-action-icon-premium">🎖️</span>
-                <span class="premium-body">My Badges</span>
+            <a href="{{ url_for('my_badges') }}" class="lakou-card h-100 text-decoration-none text-center interactive-tap">
+                <div style="font-size: 2.5rem;" class="mb-2">🏅</div>
+                <span class="lakou-body d-block">{% if language == 'ht' %}Badj Mwen{% else %}My Badges{% endif %}</span>
             </a>
         </div>
     </div>
 </div>
 
-<!-- Stats Cards -->
+<!-- Stats Overview -->
 {% if advice %}
-<div class="row mb-4" data-aos="fade-up" data-aos-delay="200">
+<div class="row mb-4 stagger-in" data-aos="fade-up" data-aos-delay="200">
     <div class="col-md-4 mb-3">
-        <div class="glass-card stat-card-premium">
-            <div class="stat-icon">💰</div>
-            <div class="stat-value-premium">${{ "%.2f"|format(advice.total_saved) }}</div>
-            <p class="stat-label-premium mb-0">{% if language == 'ht' %}Total Ekonomize{% else %}Total Saved{% endif %}</p>
+        <div class="lakou-card text-center h-100">
+            <div class="stat-circle mx-auto mb-3">
+                <span class="stat-value">${{ "%.0f"|format(advice.total_saved) }}</span>
+            </div>
+            <p class="lakou-body mb-0" style="color: var(--text-secondary);">
+                {% if language == 'ht' %}Total Ekonomize{% else %}Total Saved{% endif %}
+            </p>
         </div>
     </div>
     <div class="col-md-4 mb-3">
-        <div class="glass-card stat-card-premium">
-            <div class="stat-icon">👥</div>
-            <div class="stat-value-premium">{{ advice.groups_count }}</div>
-            <p class="stat-label-premium mb-0">{% if language == 'ht' %}Gwoup Aktif{% else %}Active Groups{% endif %}</p>
+        <div class="lakou-card text-center h-100">
+            <div class="stat-circle mx-auto mb-3">
+                <span class="stat-value">{{ advice.groups_count }}</span>
+            </div>
+            <p class="lakou-body mb-0" style="color: var(--text-secondary);">
+                {% if language == 'ht' %}Gwoup Aktif{% else %}Active Groups{% endif %}
+            </p>
         </div>
     </div>
     <div class="col-md-4 mb-3">
-        <div class="glass-card stat-card-premium">
-            <div class="stat-icon">🎯</div>
-            <div class="stat-value-premium">{{ "%.0f"|format(advice.next_goal.progress) }}%</div>
-            <p class="stat-label-premium mb-0">{% if language == 'ht' %}Objektif{% else %}Goal Progress{% endif %}</p>
-            <div class="mt-3">
-                <div class="premium-progress-bar">
-                    <div class="premium-progress-fill" style="width: {{ "%.0f"|format(advice.next_goal.progress if advice.next_goal.progress <= 100 else 100) }}%"></div>
+        <div class="lakou-card text-center h-100">
+            <div class="stat-circle mx-auto mb-3 animate-pulse-warm">
+                <span class="stat-value">{{ "%.0f"|format(advice.next_goal.progress) }}%</span>
+            </div>
+            <p class="lakou-body mb-0" style="color: var(--text-secondary);">
+                {% if language == 'ht' %}Pwogrè Objektif{% else %}Goal Progress{% endif %}
+            </p>
+            <div class="mt-3 px-4">
+                <div class="progress-lakou">
+                    <div class="progress-lakou-bar" style="width: {{ "%.0f"|format(advice.next_goal.progress if advice.next_goal.progress <= 100 else 100) }}%"></div>
                 </div>
-                <small class="text-muted d-block mt-1">Target: ${{ advice.next_goal.amount }}</small>
+                <small class="lakou-body d-block mt-2" style="color: var(--text-secondary);">
+                    {% if language == 'ht' %}Objektif{% else %}Target{% endif %}: ${{ advice.next_goal.amount }}
+                </small>
             </div>
         </div>
     </div>
 </div>
 {% endif %}
 
-<!-- Page Title -->
-<div class="row mb-4">
-    <div class="col-12">
-        <h2 class="premium-heading" data-aos="fade-right">{% if language == 'ht' %}Gwoup Ekonomi Mwen{% else %}My Savings Groups{% endif %}</h2>
+<!-- Section Divider -->
+<div class="story-section">
+    <div class="story-intro">
+        <h2>{% if language == 'ht' %}Gwoup Ekonomi Mwen yo{% else %}My Savings Groups{% endif %}</h2>
+        <p>{% if language == 'ht' %}Ansanm nou pi fò. Men gwoup kote ou fè pati a.{% else %}Together we are stronger. Here are the groups you belong to.{% endif %}</p>
     </div>
 </div>
 
@@ -99,73 +113,78 @@
 <div class="row">
     <div class="col-12">        
         {% if groups_data %}
-            <div class="row">
+            <div class="row stagger-in">
                 {% for data in groups_data %}
-                <div class="col-md-6 col-lg-4 mb-4" data-aos="zoom-in" data-aos-delay="{{ loop.index0 * 50 }}">
-                    <div class="glass-card group-card-premium h-100">
-                        <!-- Group Header with Tradition Icon -->
-                        <div class="group-header-premium">
-                            {% if data.group.tradition %}
-                                <span class="tradition-icon-large">{{ data.group.tradition.icon }}</span>
-                            {% else %}
-                                <span class="tradition-icon-large">💰</span>
-                            {% endif %}
-                            <h5 class="premium-subheading mb-1">{{ data.group.name }}</h5>
-                            <p class="text-muted small mb-0">{{ data.group.description or 'No description' }}</p>
+                <div class="col-md-6 col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 50 }}">
+                    <div class="lakou-card lakou-card-featured h-100">
+                        <!-- Group Header -->
+                        <div class="text-center pb-3 mb-3" style="border-bottom: 2px solid rgba(255, 159, 28, 0.2);">
+                            <div style="font-size: 3rem;" class="mb-2 animate-float">
+                                {% if data.group.tradition %}
+                                    {{ data.group.tradition.icon }}
+                                {% else %}
+                                    💰
+                                {% endif %}
+                            </div>
+                            <h5 class="lakou-heading mb-1">{{ data.group.name }}</h5>
+                            <p class="lakou-body small mb-0" style="color: var(--text-secondary);">
+                                {{ data.group.description[:50] + '...' if data.group.description and data.group.description|length > 50 else data.group.description or 'No description' }}
+                            </p>
                         </div>
                         
                         <!-- Group Stats -->
-                        <div class="group-stats-premium">
-                            <div class="group-stat-item">
-                                <span class="stat-icon-small">💵</span>
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center gap-3 mb-2 p-2" style="background: rgba(255, 159, 28, 0.05); border-radius: 8px;">
+                                <span style="font-size: 1.5rem;">💵</span>
                                 <div>
-                                    <div class="premium-body">${{ "%.2f"|format(data.group.contribution_amount) }}</div>
-                                    <small class="text-muted">per {{ data.group.contribution_frequency }}</small>
+                                    <div class="lakou-body fw-bold">${{ "%.2f"|format(data.group.contribution_amount) }}</div>
+                                    <small style="color: var(--text-secondary);">per {{ data.group.contribution_frequency }}</small>
                                 </div>
                             </div>
-                            <div class="group-stat-item">
-                                <span class="stat-icon-small">👥</span>
+                            <div class="d-flex align-items-center gap-3 mb-2 p-2" style="background: rgba(46, 196, 182, 0.05); border-radius: 8px;">
+                                <span style="font-size: 1.5rem;">👥</span>
                                 <div>
-                                    <div class="premium-body">{{ data.members_count }}</div>
-                                    <small class="text-muted">members</small>
+                                    <div class="lakou-body fw-bold">{{ data.members_count }} {% if language == 'ht' %}manm{% else %}members{% endif %}</div>
+                                    <small style="color: var(--text-secondary);">{% if language == 'ht' %}nan gwoup la{% else %}in this group{% endif %}</small>
                                 </div>
                             </div>
-                            <div class="group-stat-item">
-                                <span class="stat-icon-small">💎</span>
+                            <div class="d-flex align-items-center gap-3 p-2" style="background: rgba(45, 90, 39, 0.05); border-radius: 8px;">
+                                <span style="font-size: 1.5rem;">💎</span>
                                 <div>
-                                    <div class="premium-body text-success">${{ "%.2f"|format(data.balance) }}</div>
-                                    <small class="text-muted">group balance</small>
+                                    <div class="lakou-body fw-bold" style="color: var(--palm-green);">${{ "%.2f"|format(data.balance) }}</div>
+                                    <small style="color: var(--text-secondary);">{% if language == 'ht' %}balans gwoup{% else %}group balance{% endif %}</small>
                                 </div>
                             </div>
                         </div>
                         
                         <!-- Role Badge -->
-                        <div class="mb-3">
-                            <span class="badge-premium badge-premium-{{ data.membership.role }}">
-                                {{ data.membership.role.upper() }}
+                        <div class="mb-3 text-center">
+                            <span class="badge-cultural {% if data.membership.role == 'admin' %}badge-mango{% else %}badge-ocean{% endif %}">
+                                {% if data.membership.role == 'admin' %}👑{% else %}🤝{% endif %}
+                                {{ data.membership.role|upper }}
                             </span>
                         </div>
                         
-                        <!-- Progress Bar for Group Balance -->
+                        <!-- Progress Bar -->
                         {% set target = data.group.contribution_amount * data.members_count * 10 %}
                         {% set progress = (data.balance / target * 100) if target > 0 else 0 %}
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <div class="d-flex justify-content-between mb-2">
-                                <small class="text-muted">{% if language == 'ht' %}Pwogrè{% else %}Progress{% endif %}</small>
-                                <small class="premium-body">${{ "%.0f"|format(target) }} target</small>
+                                <small class="lakou-body" style="color: var(--text-secondary);">{% if language == 'ht' %}Pwogrè{% else %}Progress{% endif %}</small>
+                                <small class="lakou-body fw-bold">${{ "%.0f"|format(target) }}</small>
                             </div>
-                            <div class="premium-progress-bar">
-                                <div class="premium-progress-fill" style="width: {{ "%.0f"|format(progress if progress <= 100 else 100) }}%"></div>
+                            <div class="progress-lakou">
+                                <div class="progress-lakou-bar" style="width: {{ "%.0f"|format(progress if progress <= 100 else 100) }}%"></div>
                             </div>
                         </div>
                         
                         <!-- Action Buttons -->
                         <div class="d-grid gap-2">
-                            <a href="{{ url_for('group_detail', group_id=data.group.id) }}" class="btn-premium btn-sm">
-                                View Details
+                            <a href="{{ url_for('group_detail', group_id=data.group.id) }}" class="btn-konbit btn-konbit-primary">
+                                {% if language == 'ht' %}Wè Detay{% else %}View Details{% endif %}
                             </a>
-                            <a href="{{ url_for('ledger', group_id=data.group.id) }}" class="btn-premium-outline btn-sm">
-                                View Ledger
+                            <a href="{{ url_for('ledger', group_id=data.group.id) }}" class="btn-konbit btn-konbit-secondary">
+                                {% if language == 'ht' %}Wè Liv Kont{% else %}View Ledger{% endif %}
                             </a>
                         </div>
                     </div>
@@ -173,187 +192,39 @@
                 {% endfor %}
             </div>
         {% else %}
-            <div class="glass-card text-center" data-aos="fade-up">
-                <div class="empty-state">
-                    <div class="empty-state-icon">💰</div>
-                    <h5 class="premium-subheading mb-2">No groups yet</h5>
-                    <p class="premium-body text-muted mb-4">You haven't joined any savings groups yet. Get started by creating a new group or joining an existing one.</p>
+            <!-- Empty State -->
+            <div class="lakou-card text-center" data-aos="fade-up">
+                <div class="py-5">
+                    <div style="font-size: 5rem;" class="mb-4 animate-float">🌱</div>
+                    <h3 class="lakou-heading mb-3">
+                        {% if language == 'ht' %}Kòmanse Vwayaj Ekonomi Ou{% else %}Start Your Savings Journey{% endif %}
+                    </h3>
+                    <p class="lakou-body mx-auto mb-4" style="max-width: 500px; color: var(--text-secondary);">
+                        {% if language == 'ht' %}
+                        Ou poko nan okenn gwoup ekonomi. Kòmanse jodi a - kreye yon gwoup oswa jwenn youn ki egziste.
+                        {% else %}
+                        You haven't joined any savings groups yet. Get started today - create a new group or join an existing one.
+                        {% endif %}
+                    </p>
+                    <div class="pwovèb mx-auto mb-4" style="max-width: 600px;">
+                        {% if language == 'ht' %}
+                        "Men anpil, chay pa lou" — Ansanm, nou ka reyisi plis pase poukont nou.
+                        {% else %}
+                        "Many hands make the load lighter" — Together, we can achieve more than alone.
+                        {% endif %}
+                    </div>
                     <div class="d-flex gap-3 justify-content-center flex-wrap">
-                        <a href="{{ url_for('create_group') }}" class="btn-premium">Create Group</a>
-                        <a href="{{ url_for('join_group') }}" class="btn-premium-outline">Join Group</a>
+                        <a href="{{ url_for('create_group') }}" class="btn-konbit btn-konbit-primary">
+                            ➕ {% if language == 'ht' %}Kreye Gwoup{% else %}Create Group{% endif %}
+                        </a>
+                        <a href="{{ url_for('join_group') }}" class="btn-konbit btn-konbit-secondary">
+                            🤝 {% if language == 'ht' %}Jwenn Gwoup{% else %}Join Group{% endif %}
+                        </a>
                     </div>
                 </div>
             </div>
         {% endif %}
     </div>
 </div>
-
-<style>
-/* Quick Actions Premium */
-.quick-action-premium {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 1.25rem 1rem;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 16px;
-    text-decoration: none;
-    color: white;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-}
-
-.quick-action-premium:hover {
-    background: rgba(255, 255, 255, 0.12);
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 12px 40px rgba(102, 126, 234, 0.3);
-    color: white;
-}
-
-.quick-action-icon-premium {
-    font-size: 2rem;
-}
-
-/* Stat Card Premium */
-.stat-card-premium {
-    text-align: center;
-    padding: 2rem 1.5rem !important;
-    position: relative;
-    overflow: hidden;
-}
-
-.stat-card-premium::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
-    animation: shimmer 2s infinite;
-}
-
-.stat-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    display: block;
-    animation: float 3s ease-in-out infinite;
-}
-
-.stat-value-premium {
-    font-size: 2.5rem;
-    font-weight: 600;
-    font-family: 'Poppins', sans-serif;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 0.5rem;
-}
-
-.stat-label-premium {
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.7);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-/* Group Card Premium */
-.group-card-premium {
-    transition: all 0.3s ease;
-}
-
-.group-card-premium:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4);
-}
-
-.group-header-premium {
-    text-align: center;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 1.5rem;
-}
-
-.tradition-icon-large {
-    font-size: 3rem;
-    display: block;
-    margin-bottom: 1rem;
-    animation: float 3s ease-in-out infinite;
-}
-
-.group-stats-premium {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.group-stat-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.75rem;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    transition: all 0.2s ease;
-}
-
-.group-stat-item:hover {
-    background: rgba(255, 255, 255, 0.08);
-    transform: translateX(4px);
-}
-
-.stat-icon-small {
-    font-size: 1.5rem;
-}
-
-/* Badge Premium */
-.badge-premium {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-
-.badge-premium-admin {
-    background: linear-gradient(135deg, #FFD700, #FFA500);
-    color: #000;
-}
-
-.badge-premium-member {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-}
-
-/* Empty State */
-.empty-state {
-    padding: 3rem 2rem;
-}
-
-.empty-state-icon {
-    font-size: 5rem;
-    margin-bottom: 1.5rem;
-    animation: float 3s ease-in-out infinite;
-}
-
-@media (max-width: 768px) {
-    .stat-value-premium {
-        font-size: 2rem;
-    }
-    
-    .stat-icon {
-        font-size: 2.5rem;
-    }
-    
-    .empty-state-icon {
-        font-size: 4rem;
-    }
-}
-</style>
 
 {% endblock %}

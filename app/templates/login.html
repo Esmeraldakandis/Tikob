@@ -3,32 +3,87 @@
 {% block title %}Login - TiKòb{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-6 col-lg-4">
-        <div class="card shadow">
-            <div class="card-body">
-                <h2 class="card-title text-center mb-4">TiKòb Login</h2>
-                <p class="text-center text-muted mb-4">Community Savings Made Simple</p>
-                
-                <form method="POST" action="{{ url_for('login') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Login</button>
-                </form>
-                
-                <hr class="my-4">
-                
-                <p class="text-center mb-0">
-                    Don't have an account? <a href="{{ url_for('signup') }}">Sign up</a>
+<div class="row justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="col-md-6 col-lg-5 col-xl-4">
+        <div class="lakou-card animate-in" style="padding: 2.5rem;">
+            <!-- Logo & Welcome -->
+            <div class="text-center mb-4">
+                <div style="font-size: 4rem;" class="mb-3 animate-float">🏠</div>
+                <h1 class="lakou-title mb-2" style="font-size: 2.25rem;">TiKòb</h1>
+                <p class="lakou-body" style="color: var(--text-secondary);">
+                    {% if session.get('language') == 'ht' %}
+                    Ekonomi Kominote, Senp e Fasil
+                    {% else %}
+                    Community Savings Made Simple
+                    {% endif %}
                 </p>
             </div>
+            
+            <!-- Proverb -->
+            <div class="pwovèb mb-4" style="padding: 1rem 1.25rem;">
+                {% if session.get('language') == 'ht' %}
+                "Men anpil, chay pa lou"
+                <span class="pwovèb-meaning">Ansanm nou pi fò</span>
+                {% else %}
+                "Many hands make the load lighter"
+                <span class="pwovèb-meaning">Together we are stronger</span>
+                {% endif %}
+            </div>
+            
+            <!-- Login Form -->
+            <form method="POST" action="{{ url_for('login') }}" class="form-lakou">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                
+                <div class="mb-3">
+                    <label for="username" class="form-label">
+                        {% if session.get('language') == 'ht' %}Non Itilizatè{% else %}Username{% endif %}
+                    </label>
+                    <input type="text" 
+                           class="form-control" 
+                           id="username" 
+                           name="username" 
+                           autocomplete="username"
+                           placeholder="{% if session.get('language') == 'ht' %}Antre non ou{% else %}Enter your username{% endif %}"
+                           required>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="password" class="form-label">
+                        {% if session.get('language') == 'ht' %}Modpas{% else %}Password{% endif %}
+                    </label>
+                    <input type="password" 
+                           class="form-control" 
+                           id="password" 
+                           name="password" 
+                           autocomplete="current-password"
+                           placeholder="{% if session.get('language') == 'ht' %}Antre modpas ou{% else %}Enter your password{% endif %}"
+                           required>
+                </div>
+                
+                <button type="submit" class="btn-konbit btn-konbit-primary w-100 mb-3">
+                    {% if session.get('language') == 'ht' %}Konekte{% else %}Login{% endif %}
+                </button>
+            </form>
+            
+            <div style="text-align: center; padding-top: 1rem; border-top: 1px solid rgba(111, 78, 55, 0.1);">
+                <p class="lakou-body mb-0" style="color: var(--text-secondary);">
+                    {% if session.get('language') == 'ht' %}
+                    Pa gen kont? <a href="{{ url_for('signup') }}" style="color: var(--mango); font-weight: 600;">Enskri</a>
+                    {% else %}
+                    Don't have an account? <a href="{{ url_for('signup') }}" style="color: var(--mango); font-weight: 600;">Sign up</a>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        
+        <!-- Language Switcher -->
+        <div class="text-center mt-4">
+            <a href="{{ url_for('set_language', lang='en') }}" class="badge-cultural badge-ocean me-2 text-decoration-none">
+                🇺🇸 English
+            </a>
+            <a href="{{ url_for('set_language', lang='ht') }}" class="badge-cultural badge-mango text-decoration-none">
+                🇭🇹 Kreyòl
+            </a>
         </div>
     </div>
 </div>

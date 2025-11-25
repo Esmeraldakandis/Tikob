@@ -1,0 +1,842 @@
+/* ========================================
+   LAKOU - Immersive Haitian Cultural Experience
+   Mind, Body, Soul Design System
+   ======================================== */
+
+/* ===== HAITIAN SOUL COLOR PALETTE ===== */
+:root {
+    /* Warm Earth Tones - like Haitian soil and sunset */
+    --mango: #FF9F1C;
+    --hibiscus: #E63946;
+    --sea-blue: #1D3557;
+    --caribbean: #2EC4B6;
+    --coconut: #FAF3E0;
+    --mahogany: #4A2C2A;
+    --sunset-gold: #FFB627;
+    --palm-green: #2D5A27;
+    --sand-warm: #F5E6D3;
+    --coffee: #6F4E37;
+    --clay: #BC6C25;
+    --night-sky: #1A1A2E;
+    
+    /* Accent Colors */
+    --citrus: #FFE66D;
+    --ocean-foam: #B8F2E6;
+    --passion-fruit: #E56B6F;
+    
+    /* Functional */
+    --text-primary: #2D3436;
+    --text-secondary: #636E72;
+    --text-light: #FAF3E0;
+    --surface: #FFFFFF;
+    --surface-warm: #FDF8F3;
+    
+    /* Gradients - Haitian Sunset */
+    --sunset: linear-gradient(135deg, #FF9F1C 0%, #E63946 50%, #1D3557 100%);
+    --morning: linear-gradient(135deg, #FFB627 0%, #FF9F1C 50%, #FFE66D 100%);
+    --ocean: linear-gradient(135deg, #1D3557 0%, #2EC4B6 100%);
+    --earth: linear-gradient(135deg, #6F4E37 0%, #BC6C25 100%);
+    
+    /* Shadows - Soft and Warm */
+    --shadow-soft: 0 4px 20px rgba(74, 44, 42, 0.08);
+    --shadow-medium: 0 8px 30px rgba(74, 44, 42, 0.12);
+    --shadow-warm: 0 4px 20px rgba(255, 159, 28, 0.15);
+    
+    /* Transitions */
+    --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Dark Mode - Haitian Night */
+[data-theme="dark"] {
+    --surface: #1A1A2E;
+    --surface-warm: #252542;
+    --text-primary: #FAF3E0;
+    --text-secondary: #B8B8C7;
+    --coconut: #2A2A42;
+    --sand-warm: #1F1F35;
+    --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.3);
+    --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* ===== SOULFUL TYPOGRAPHY ===== */
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Source+Sans+3:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap');
+
+body {
+    font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text-primary);
+    background: var(--surface-warm);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+.lakou-title {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-weight: 400;
+    color: var(--mahogany);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+[data-theme="dark"] .lakou-title {
+    color: var(--mango);
+}
+
+.lakou-heading {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    color: var(--sea-blue);
+}
+
+[data-theme="dark"] .lakou-heading {
+    color: var(--caribbean);
+}
+
+.lakou-body {
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 400;
+    font-size: 1.05rem;
+}
+
+/* ===== HAITIAN PROVERB DISPLAY ===== */
+.pwovèb {
+    position: relative;
+    padding: 1.5rem 2rem;
+    background: linear-gradient(135deg, rgba(255, 159, 28, 0.08) 0%, rgba(230, 57, 70, 0.05) 100%);
+    border-left: 4px solid var(--mango);
+    border-radius: 0 12px 12px 0;
+    margin: 1.5rem 0;
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--mahogany);
+}
+
+[data-theme="dark"] .pwovèb {
+    background: linear-gradient(135deg, rgba(255, 159, 28, 0.12) 0%, rgba(230, 57, 70, 0.08) 100%);
+    color: var(--coconut);
+}
+
+.pwovèb::before {
+    content: '❝';
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    font-size: 2.5rem;
+    color: var(--mango);
+    opacity: 0.4;
+    font-style: normal;
+}
+
+.pwovèb-meaning {
+    display: block;
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+    font-style: normal;
+    color: var(--text-secondary);
+    padding-left: 1rem;
+    border-left: 2px solid var(--caribbean);
+}
+
+/* ===== LAKOU CARDS - Community Gathering Spaces ===== */
+.lakou-card {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 1.75rem;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid rgba(111, 78, 55, 0.08);
+    transition: all 0.4s var(--ease-smooth);
+    position: relative;
+    overflow: hidden;
+}
+
+.lakou-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--sunset);
+    opacity: 0;
+    transition: opacity 0.3s var(--ease-smooth);
+}
+
+.lakou-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-medium);
+}
+
+.lakou-card:hover::before {
+    opacity: 1;
+}
+
+.lakou-card-featured {
+    background: linear-gradient(135deg, var(--surface) 0%, var(--sand-warm) 100%);
+    border: 2px solid var(--mango);
+}
+
+.lakou-card-featured::before {
+    opacity: 1;
+    height: 5px;
+}
+
+/* ===== KONBIT BUTTONS - Community Action ===== */
+.btn-konbit {
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 600;
+    padding: 0.875rem 1.75rem;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s var(--ease-bounce);
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-konbit-primary {
+    background: var(--sunset);
+    color: var(--text-light);
+    box-shadow: 0 4px 15px rgba(255, 159, 28, 0.3);
+}
+
+.btn-konbit-primary:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(255, 159, 28, 0.4);
+    color: var(--text-light);
+}
+
+.btn-konbit-secondary {
+    background: var(--surface);
+    color: var(--sea-blue);
+    border: 2px solid var(--sea-blue);
+}
+
+.btn-konbit-secondary:hover {
+    background: var(--sea-blue);
+    color: var(--text-light);
+    transform: translateY(-2px);
+}
+
+.btn-konbit-warm {
+    background: var(--earth);
+    color: var(--text-light);
+}
+
+.btn-konbit-ocean {
+    background: var(--ocean);
+    color: var(--text-light);
+}
+
+/* Ripple Effect on Click */
+.btn-konbit::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 60%);
+    transform: scale(0);
+    opacity: 0;
+}
+
+.btn-konbit:active::after {
+    transform: scale(2);
+    opacity: 1;
+    transition: transform 0.5s, opacity 0.3s;
+}
+
+/* ===== CULTURAL NAVIGATION ===== */
+.nav-lakou {
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+    padding: 0.5rem 0;
+    border-bottom: 3px solid transparent;
+    border-image: var(--sunset);
+    border-image-slice: 1;
+}
+
+.nav-lakou .navbar-brand {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+    color: var(--mahogany) !important;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+[data-theme="dark"] .nav-lakou {
+    background: var(--night-sky);
+}
+
+[data-theme="dark"] .nav-lakou .navbar-brand {
+    color: var(--mango) !important;
+}
+
+.nav-lakou .nav-link {
+    color: var(--text-primary) !important;
+    font-weight: 500;
+    padding: 0.5rem 1rem !important;
+    border-radius: 8px;
+    transition: all 0.3s var(--ease-smooth);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.nav-lakou .nav-link:hover {
+    background: rgba(255, 159, 28, 0.1);
+    color: var(--mango) !important;
+}
+
+[data-theme="dark"] .nav-lakou .nav-link {
+    color: var(--text-light) !important;
+}
+
+/* ===== CULTURAL BADGES - Konbit Spirit ===== */
+.badge-cultural {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.3s var(--ease-smooth);
+}
+
+.badge-mango {
+    background: rgba(255, 159, 28, 0.15);
+    color: var(--clay);
+    border: 1px solid var(--mango);
+}
+
+.badge-ocean {
+    background: rgba(46, 196, 182, 0.15);
+    color: var(--sea-blue);
+    border: 1px solid var(--caribbean);
+}
+
+.badge-hibiscus {
+    background: rgba(230, 57, 70, 0.1);
+    color: var(--hibiscus);
+    border: 1px solid var(--passion-fruit);
+}
+
+.badge-earth {
+    background: rgba(111, 78, 55, 0.1);
+    color: var(--coffee);
+    border: 1px solid var(--coffee);
+}
+
+/* ===== STORYTELLING SECTIONS ===== */
+.story-section {
+    padding: 3rem 0;
+    position: relative;
+}
+
+.story-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background: var(--sunset);
+    border-radius: 2px;
+}
+
+.story-intro {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto 2.5rem;
+}
+
+.story-intro h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.25rem;
+    color: var(--mahogany);
+    margin-bottom: 1rem;
+}
+
+[data-theme="dark"] .story-intro h2 {
+    color: var(--mango);
+}
+
+.story-intro p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    line-height: 1.7;
+}
+
+/* ===== COMMUNITY STATS - Konbit Progress ===== */
+.stat-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.4s var(--ease-bounce);
+}
+
+.stat-circle::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: var(--sunset);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s var(--ease-smooth);
+}
+
+.stat-circle:hover {
+    transform: scale(1.05);
+}
+
+.stat-circle:hover::before {
+    opacity: 1;
+}
+
+.stat-value {
+    font-family: 'Fraunces', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--sea-blue);
+    line-height: 1;
+}
+
+[data-theme="dark"] .stat-value {
+    color: var(--caribbean);
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0.25rem;
+}
+
+/* ===== FORMS - Warm Input Experience ===== */
+.form-lakou .form-control {
+    border: 2px solid rgba(111, 78, 55, 0.2);
+    border-radius: 10px;
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    transition: all 0.3s var(--ease-smooth);
+    background: var(--surface);
+}
+
+.form-lakou .form-control:focus {
+    border-color: var(--mango);
+    box-shadow: 0 0 0 4px rgba(255, 159, 28, 0.15);
+    outline: none;
+}
+
+.form-lakou .form-label {
+    font-weight: 600;
+    color: var(--mahogany);
+    margin-bottom: 0.5rem;
+}
+
+[data-theme="dark"] .form-lakou .form-label {
+    color: var(--coconut);
+}
+
+.form-lakou .form-text {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+/* ===== PROGRESS BARS - Journey Together ===== */
+.progress-lakou {
+    height: 12px;
+    border-radius: 6px;
+    background: rgba(111, 78, 55, 0.1);
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-lakou-bar {
+    height: 100%;
+    background: var(--sunset);
+    border-radius: 6px;
+    transition: width 0.8s var(--ease-smooth);
+    position: relative;
+}
+
+.progress-lakou-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* ===== INTERACTIVE TOOLTIPS ===== */
+.tooltip-lakou {
+    position: relative;
+    cursor: help;
+}
+
+.tooltip-lakou::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    background: var(--mahogany);
+    color: var(--text-light);
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s var(--ease-smooth);
+    z-index: 100;
+}
+
+.tooltip-lakou:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-4px);
+}
+
+/* ===== CULTURAL AVATARS ===== */
+.avatar-lakou {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text-light);
+    position: relative;
+    transition: all 0.3s var(--ease-bounce);
+}
+
+.avatar-lakou:hover {
+    transform: scale(1.1);
+}
+
+.avatar-mango { background: var(--sunset); }
+.avatar-ocean { background: var(--ocean); }
+.avatar-earth { background: var(--earth); }
+.avatar-hibiscus { background: linear-gradient(135deg, var(--hibiscus), var(--passion-fruit)); }
+
+.avatar-online::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    background: var(--caribbean);
+    border: 2px solid var(--surface);
+    border-radius: 50%;
+}
+
+/* ===== ANIMATIONS - Organic Movement ===== */
+@keyframes gentleFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+@keyframes warmPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 159, 28, 0.4); }
+    50% { box-shadow: 0 0 0 15px rgba(255, 159, 28, 0); }
+}
+
+@keyframes fadeSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-float {
+    animation: gentleFloat 4s ease-in-out infinite;
+}
+
+.animate-pulse-warm {
+    animation: warmPulse 2s ease-in-out infinite;
+}
+
+.animate-in {
+    animation: fadeSlideUp 0.6s var(--ease-smooth) forwards;
+}
+
+/* Staggered Animation for Lists */
+.stagger-in > * {
+    opacity: 0;
+    animation: fadeSlideUp 0.5s var(--ease-smooth) forwards;
+}
+
+.stagger-in > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-in > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger-in > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-in > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger-in > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger-in > *:nth-child(6) { animation-delay: 0.3s; }
+
+/* ===== WELCOME HERO - First Impression ===== */
+.hero-lakou {
+    background: var(--surface);
+    padding: 4rem 2rem;
+    border-radius: 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-medium);
+}
+
+.hero-lakou::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: var(--sunset);
+}
+
+.hero-lakou::after {
+    content: '';
+    position: absolute;
+    bottom: -50%;
+    right: -20%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255, 159, 28, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.hero-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    color: var(--mahogany);
+    margin-bottom: 1rem;
+    line-height: 1.1;
+}
+
+[data-theme="dark"] .hero-title {
+    color: var(--mango);
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto 2rem;
+    line-height: 1.6;
+}
+
+/* ===== ALERTS - Haitian Warmth ===== */
+.alert-lakou {
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    border: none;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.alert-lakou-success {
+    background: rgba(46, 196, 182, 0.12);
+    color: var(--palm-green);
+    border-left: 4px solid var(--caribbean);
+}
+
+.alert-lakou-warning {
+    background: rgba(255, 159, 28, 0.12);
+    color: var(--coffee);
+    border-left: 4px solid var(--mango);
+}
+
+.alert-lakou-error {
+    background: rgba(230, 57, 70, 0.1);
+    color: var(--hibiscus);
+    border-left: 4px solid var(--hibiscus);
+}
+
+.alert-lakou-info {
+    background: rgba(29, 53, 87, 0.08);
+    color: var(--sea-blue);
+    border-left: 4px solid var(--sea-blue);
+}
+
+/* ===== TABLES - Community Data ===== */
+.table-lakou {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+}
+
+.table-lakou thead {
+    background: var(--sea-blue);
+    color: var(--text-light);
+}
+
+.table-lakou thead th {
+    font-weight: 600;
+    padding: 1rem;
+    border: none;
+}
+
+.table-lakou tbody tr {
+    transition: background 0.2s var(--ease-smooth);
+}
+
+.table-lakou tbody tr:hover {
+    background: rgba(255, 159, 28, 0.05);
+}
+
+.table-lakou tbody td {
+    padding: 0.875rem 1rem;
+    vertical-align: middle;
+    border-color: rgba(111, 78, 55, 0.08);
+}
+
+/* ===== MODAL - Gathering Space ===== */
+.modal-lakou .modal-content {
+    border: none;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: var(--shadow-medium);
+}
+
+.modal-lakou .modal-header {
+    background: var(--sunset);
+    color: var(--text-light);
+    border: none;
+    padding: 1.25rem 1.5rem;
+}
+
+.modal-lakou .modal-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.35rem;
+}
+
+.modal-lakou .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+.modal-lakou .modal-body {
+    padding: 1.5rem;
+}
+
+.modal-lakou .modal-footer {
+    border-top: 1px solid rgba(111, 78, 55, 0.1);
+    padding: 1rem 1.5rem;
+}
+
+/* ===== DROPDOWN - Flowing Menu ===== */
+.dropdown-lakou .dropdown-menu {
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--shadow-medium);
+    padding: 0.5rem;
+    animation: fadeSlideUp 0.2s var(--ease-smooth);
+}
+
+.dropdown-lakou .dropdown-item {
+    border-radius: 8px;
+    padding: 0.625rem 1rem;
+    font-weight: 500;
+    transition: all 0.2s var(--ease-smooth);
+}
+
+.dropdown-lakou .dropdown-item:hover {
+    background: rgba(255, 159, 28, 0.1);
+    color: var(--mango);
+}
+
+/* ===== INTERACTIVE ELEMENTS ===== */
+.interactive-tap {
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.interactive-tap:active {
+    transform: scale(0.97);
+}
+
+/* Focus States - Accessible */
+*:focus-visible {
+    outline: 3px solid var(--mango);
+    outline-offset: 2px;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .hero-lakou {
+        padding: 2.5rem 1.5rem;
+    }
+    
+    .lakou-card {
+        padding: 1.25rem;
+    }
+    
+    .story-section {
+        padding: 2rem 0;
+    }
+    
+    .stat-circle {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+    .nav-lakou,
+    .btn-konbit {
+        display: none !important;
+    }
+    
+    .lakou-card {
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+}
+
+/* ===== CULTURAL SYMBOLS ===== */
+.symbol-konbit::before { content: '🤝'; margin-right: 0.5rem; }
+.symbol-savings::before { content: '💰'; margin-right: 0.5rem; }
+.symbol-growth::before { content: '🌱'; margin-right: 0.5rem; }
+.symbol-community::before { content: '👥'; margin-right: 0.5rem; }
+.symbol-celebration::before { content: '🎊'; margin-right: 0.5rem; }
+.symbol-wisdom::before { content: '📖'; margin-right: 0.5rem; }
+.symbol-drum::before { content: '🪘'; margin-right: 0.5rem; }
+.symbol-sun::before { content: '☀️'; margin-right: 0.5rem; }

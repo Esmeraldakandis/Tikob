@@ -3,35 +3,109 @@
 {% block title %}Sign Up - TiKòb{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-6 col-lg-4">
-        <div class="card shadow">
-            <div class="card-body">
-                <h2 class="card-title text-center mb-4">Create Account</h2>
-                
-                <form method="POST" action="{{ url_for('signup') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Sign Up</button>
-                </form>
-                
-                <hr class="my-4">
-                
-                <p class="text-center mb-0">
-                    Already have an account? <a href="{{ url_for('login') }}">Login</a>
+<div class="row justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="col-md-6 col-lg-5 col-xl-4">
+        <div class="lakou-card animate-in" style="padding: 2.5rem;">
+            <!-- Welcome Header -->
+            <div class="text-center mb-4">
+                <div style="font-size: 4rem;" class="mb-3 animate-float">🌱</div>
+                <h1 class="lakou-title mb-2" style="font-size: 2rem;">
+                    {% if session.get('language') == 'ht' %}Jwenn Kominote a{% else %}Join the Community{% endif %}
+                </h1>
+                <p class="lakou-body" style="color: var(--text-secondary);">
+                    {% if session.get('language') == 'ht' %}
+                    Kòmanse vwayaj ekonomi ou jodi a
+                    {% else %}
+                    Start your savings journey today
+                    {% endif %}
                 </p>
             </div>
+            
+            <!-- Signup Form -->
+            <form method="POST" action="{{ url_for('signup') }}" class="form-lakou">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                
+                <div class="mb-3">
+                    <label for="username" class="form-label">
+                        {% if session.get('language') == 'ht' %}Non Itilizatè{% else %}Username{% endif %}
+                    </label>
+                    <input type="text" 
+                           class="form-control" 
+                           id="username" 
+                           name="username" 
+                           autocomplete="username"
+                           placeholder="{% if session.get('language') == 'ht' %}Chwazi yon non{% else %}Choose a username{% endif %}"
+                           required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="email" class="form-label">
+                        {% if session.get('language') == 'ht' %}Imèl{% else %}Email{% endif %}
+                    </label>
+                    <input type="email" 
+                           class="form-control" 
+                           id="email" 
+                           name="email" 
+                           autocomplete="email"
+                           placeholder="{% if session.get('language') == 'ht' %}Antre imèl ou{% else %}Enter your email{% endif %}"
+                           required>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="password" class="form-label">
+                        {% if session.get('language') == 'ht' %}Modpas{% else %}Password{% endif %}
+                    </label>
+                    <input type="password" 
+                           class="form-control" 
+                           id="password" 
+                           name="password" 
+                           autocomplete="new-password"
+                           placeholder="{% if session.get('language') == 'ht' %}Kreye yon modpas{% else %}Create a password{% endif %}"
+                           required>
+                    <small class="form-text">
+                        {% if session.get('language') == 'ht' %}
+                        Omwen 6 karaktè
+                        {% else %}
+                        At least 6 characters
+                        {% endif %}
+                    </small>
+                </div>
+                
+                <button type="submit" class="btn-konbit btn-konbit-primary w-100 mb-3">
+                    {% if session.get('language') == 'ht' %}Kreye Kont{% else %}Create Account{% endif %}
+                </button>
+            </form>
+            
+            <!-- Proverb -->
+            <div class="pwovèb mb-3" style="padding: 0.875rem 1rem; font-size: 0.95rem;">
+                {% if session.get('language') == 'ht' %}
+                "Piti piti, zwazo fè nich li"
+                <span class="pwovèb-meaning">Kòmanse piti, grandi gwo</span>
+                {% else %}
+                "Little by little, the bird builds its nest"
+                <span class="pwovèb-meaning">Start small, grow big</span>
+                {% endif %}
+            </div>
+            
+            <div style="text-align: center; padding-top: 1rem; border-top: 1px solid rgba(111, 78, 55, 0.1);">
+                <p class="lakou-body mb-0" style="color: var(--text-secondary);">
+                    {% if session.get('language') == 'ht' %}
+                    Deja gen kont? <a href="{{ url_for('login') }}" style="color: var(--mango); font-weight: 600;">Konekte</a>
+                    {% else %}
+                    Already have an account? <a href="{{ url_for('login') }}" style="color: var(--mango); font-weight: 600;">Login</a>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        
+        <!-- Language Switcher -->
+        <div class="text-center mt-4">
+            <a href="{{ url_for('set_language', lang='en') }}" class="badge-cultural badge-ocean me-2 text-decoration-none">
+                🇺🇸 English
+            </a>
+            <a href="{{ url_for('set_language', lang='ht') }}" class="badge-cultural badge-mango text-decoration-none">
+                🇭🇹 Kreyòl
+            </a>
         </div>
     </div>
 </div>
