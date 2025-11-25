@@ -1,0 +1,239 @@
+Replit agent instructions for a tax‑ready community savings app
+
+You’re building a Fintech‑grade ledger, tax allocation, and reporting engine. Priorities: immutability, auditability, and mathematically correct allocations. Deliver in small, testable modules.
+
+---
+
+System goals
+
+• Real‑time accuracy: Double‑entry ledger with immutable events; principal vs. earnings separated at the data level.
+• Tax allocation: Proportional, time‑aware allocation of interest/dividends per member with daily accrual.
+• Reporting: Real‑time member dashboards + year‑end 1099‑INT generation (PDF + JSON).
+• Auditability: Every derived figure is traceable to raw transactions; reproducible calculations; idempotent jobs.
+• Reliability: Deterministic math, comprehensive tests, reconciliation scripts, and error flags before reports are issued.
+
+
+---
+
+Deliverables and milestones
+
+1. Core ledger (double‑entry)• Deliverables: Event store, account chart, posting service, validation hooks, reconciliation script.
+• Milestone criteria: All postings balance to zero; reconciliation passes on synthetic and randomized datasets.
+
+2. Earnings accrual service• Deliverables: Daily accrual job, weighted allocation by member share, separation of principal vs. earnings.
+• Milestone criteria: Deterministic results for given inputs; idempotent reruns produce identical ledgers.
+
+3. Tax allocation + buckets• Deliverables: Member “taxable_earnings” bucket, cumulative year‑to‑date tracker, correction entries for rebalances.
+• Milestone criteria: Allocation matches reference calculator within 1 cent tolerance across 10k randomized cases.
+
+4. Reporting layer• Deliverables: Real‑time API endpoints, CSV/JSON exports, 1099‑INT generator (PDF + JSON payload), audit trail.
+• Milestone criteria: End‑to‑end generation from raw ledger to final form with checksum and signature stub.
+
+5. Testing and validation• Deliverables: Unit, property‑based, and integration tests; reconciliation CLI; invariants monitoring.
+• Milestone criteria: 95%+ branch coverage on math-critical modules; invariants never violated in CI runs.
+
+
+
+---
+
+Data model
+
+-- Accounts
+CREATE TABLE accounts (
+  id TEXT PRIMARY KEY,
+  type TEXT CHECK (type IN ('asset','liability','equity','income','expense')),
+  name TEXT NOT NULL
+);
+
+-- Members
+CREATE TABLE members (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT UNIQUE
+);
+
+-- Ledger events (immutable)
+CREATE TABLE ledger_events (
+  id TEXT PRIMARY KEY,
+  ts TIMESTAMP NOT NULL,
+  type TEXT NOT NULL,           -- deposit, withdrawal, interest_accrual, correction
+  ref TEXT,                     -- external reference
+  meta JSONB                    -- payload for traceability
+);
+
+-- Ledger postings (double-entry)
+CREATE TABLE ledger_postings (
+  id TEXT PRIMARY KEY,
+  event_id TEXT NOT NULL REFERENCES ledger_events(id),
+  account_id TEXT NOT NULL REFERENCES accounts(id),
+  member_id TEXT REFERENCES members(id),
+  amount NUMERIC(18,6) NOT NULL -- positive or negative
+);
+
+-- Member share snapshots (for time-aware allocation)
+CREATE TABLE member_shares (
+  id TEXT PRIMARY KEY,
+  ts DATE NOT NULL,
+  member_id TEXT NOT NULL REFERENCES members(id),
+  pool_principal NUMERIC(18,6) NOT NULL,
+  member_principal NUMERIC(18,6) NOT NULL,
+  member_share NUMERIC(18,10) NOT NULL -- derived: member_principal / pool_principal
+);
+
+-- Tax buckets
+CREATE TABLE tax_buckets (
+  id TEXT PRIMARY KEY,
+  member_id TEXT NOT NULL REFERENCES members(id),
+  tax_year INT NOT NULL,
+  taxable_interest NUMERIC(18,6) DEFAULT 0,
+  last_update TIMESTAMP
+);
+
+-- Reports
+CREATE TABLE reports (
+  id TEXT PRIMARY KEY,
+  member_id TEXT NOT NULL REFERENCES members(id),
+  tax_year INT NOT NULL,
+  type TEXT CHECK (type IN ('statement','1099-INT')),
+  status TEXT CHECK (status IN ('draft','final')),
+  payload JSONB,   -- normalized data used to render
+  checksum TEXT,   -- SHA256 over payload
+  created_at TIMESTAMP NOT NULL
+);
+
+
+---
+
+API contract
+
+POST /v1/deposits
+Body: { memberId, amount, ref }
+Effect: Creates deposit event, posts asset+liability entries, updates share snapshot.
+
+POST /v1/withdrawals
+Body: { memberId, amount, ref }
+Effect: Validates available principal, posts entries, updates share snapshot.
+
+POST /v1/interest/accrue
+Body: { date, totalInterest, ref }
+Effect: Allocates interest across members using prior day share snapshot; updates tax_buckets.
+
+GET /v1/members/:id/positions
+Returns: { principal, earnings, taxableYTD, lastAccrual }
+
+GET /v1/reports/:memberId/:year/statement
+Returns: Year-to-date statement JSON + CSV link.
+
+POST /v1/reports/:memberId/:year/1099-int
+Body: { payerInfo, accountInfo }
+Effect: Generates payload, checksum, and PDF; marks status=draft.
+
+POST /v1/reports/:id/finalize
+Effect: Locks report, emits immutable event; no further edits allowed (only corrections via new events).
+
+
+---
+
+Math and allocation rules
+
+• Double-entry invariants• Total postings per event sum to exactly 0.
+• Pool balances = sum of member sub-accounts.
+
+• Share calculation (time-aware)• Member share on day D is based on end-of-day principal snapshot from D‑1.
+• Interest accrued on D uses D‑1 shares to prevent front‑running or timing arbitrage.
+
+• Interest allocation• Allocation = totalInterest(D) × memberShare(D‑1).
+• Round using bankers’ rounding to 2 decimals at the member level; keep internal precision at 6+ decimals.
+• Any rounding remainder is posted to a “rounding_reserve” account; nightly reconciliation distributes reserve proportionally once reserve ≥ $0.01.
+
+• Corrections• Never edit history; issue correction events that reverse and re‑post with the proper values.
+• Reports reflect net of original + corrections.
+
+
+
+---
+
+Implementation notes
+
+• Precision: Use Decimal with fixed scale (e.g., 6) for internal calculations; only round at presentation or posting boundaries that require currency cents.
+• Idempotency: Accrual endpoint keyed by date+ref; re‑invocation yields identical postings.
+• Traceability: Populate meta with input parameters, snapshot IDs, and formulas used; include checksums of intermediate arrays.
+• Security: Validate inputs, enforce per‑member limits, and permission scopes on member endpoints.
+• Observability: Emit metrics: accrual_time_ms, rounding_reserve_balance, invariant_violations_count.
+• CLI tools:• reconcile: scans all events, ensures invariants, prints diffs.
+• backfill-shares: recomputes snapshots from ledger history deterministically.
+
+
+
+---
+
+Test plan
+
+• Unit tests• Posting balances, rounding rules, share snapshots, accrual idempotency.
+
+• Property-based tests• Random sequences of deposits/withdrawals/accruals; invariants must hold; taxableYTD equals sum of allocated interest.
+
+• Integration tests• End‑to‑end: create members → deposits → daily accrual → withdrawals → year‑end 1099‑INT; verify PDF payload matches ledger.
+
+• Edge cases• Zero or negative interest days.
+• Member joins mid‑year; allocation starts after first snapshot.
+• High-frequency deposits; ensure timing rules apply to D‑1 snapshot.
+• Rounding remainders across large cohorts.
+
+
+
+---
+
+Starter code (Python, FastAPI + SQLAlchemy)
+
+from decimal import Decimal, ROUND_HALF_EVEN
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+def bankers_round(x: Decimal, places=2):
+    q = Decimal(10) ** -places
+    return x.quantize(q, rounding=ROUND_HALF_EVEN)
+
+class AccrualRequest(BaseModel):
+    date: str
+    totalInterest: Decimal
+    ref: str
+
+@app.post("/v1/interest/accrue")
+def accrue_interest(req: AccrualRequest):
+    # 1) Fetch D-1 share snapshots
+    shares = get_shares_for_date_prior(req.date)  # [(member_id, share)]
+    # 2) Allocate with high precision
+    allocations = []
+    total_alloc = Decimal("0")
+    for m_id, s in shares:
+        alloc = (req.totalInterest * s).quantize(Decimal("0.000001"))
+        allocations.append((m_id, alloc))
+        total_alloc += alloc
+    # 3) Remainder to rounding_reserve
+    remainder = req.totalInterest - total_alloc
+    # 4) Post ledger entries for each member
+    event_id = create_event("interest_accrual", req.ref, {"date": req.date})
+    for m_id, alloc in allocations:
+        post_interest(event_id, m_id, alloc)            # income -> member_earnings
+        update_tax_bucket(m_id, req.date[:4], bankers_round(alloc))
+    if remainder != Decimal("0"):
+        post_rounding_reserve(event_id, remainder)
+    return {"eventId": event_id, "allocated": str(total_alloc), "reserve": str(remainder)}
+
+
+---
+
+Acceptance checklist
+
+• Accuracy: All events reconcile; earnings allocations match deterministic reference; rounding reserves handled.
+• Transparency: Every report includes a “calculation trace” section with snapshot IDs and formulas.
+• Safety: Idempotent accruals; corrections never mutate history; permissions enforced.
+• Readiness: 1099‑INT payload validated against schema; PDFs generated with checksum; statements exportable.
+
+
+---
+
+If you want, I can tailor this to your exact stack and add migration files, CI scripts, and a reference dataset to validate math across realistic scenarios.

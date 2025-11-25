@@ -14,9 +14,11 @@ from advice_service import get_latest_advice
 from currency_service import fetch_exchange_rates, convert_amount, get_user_currency, format_currency
 from haitian_culture import get_random_proverb, get_financial_wisdom, get_community_phrase
 from avatar_helper import get_user_initials, get_avatar_color
+from ledger_service import LedgerService, ReconciliationService, TaxReportService, LedgerError
+from decimal import Decimal
 import os
 import secrets
-from datetime import datetime
+from datetime import datetime, date
 
 UPLOAD_FOLDER = 'app/uploads/receipts'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
@@ -1170,6 +1172,199 @@ def on_add_reaction(data):
             )
             db.session.add(reaction)
             db.session.commit()
+
+@app.route('/api/v1/deposits', methods=['POST'])
+@login_required
+@csrf.exempt
+def api_deposit():
+    """Record a member deposit via double-entry ledger"""
+    try:
+        data = request.get_json()
+        member_id = data.get('memberId') or session['user_id']
+        group_id = data.get('groupId')
+        amount = Decimal(str(data.get('amount', 0)))
+        ref = data.get('ref', f'deposit_{datetime.utcnow().strftime("%Y%m%d%H%M%S")}')
+        
+        if not group_id or amount <= 0:
+            return jsonify({'error': 'Invalid group_id or amount'}), 400
+        
+        event = LedgerService.record_deposit(
+            member_id=member_id,
+            group_id=group_id,
+            amount=amount,
+            ref=ref,
+            created_by=session['user_id']
+        )
+        
+        return jsonify({
+            'success': True,
+            'eventId': event.id,
+            'message': 'Deposit recorded successfully'
+        })
+    except LedgerError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/v1/withdrawals', methods=['POST'])
+@login_required
+@csrf.exempt
+def api_withdrawal():
+    """Record a member withdrawal via double-entry ledger"""
+    try:
+        data = request.get_json()
+        member_id = data.get('memberId') or session['user_id']
+        group_id = data.get('groupId')
+        amount = Decimal(str(data.get('amount', 0)))
+        ref = data.get('ref', f'withdrawal_{datetime.utcnow().strftime("%Y%m%d%H%M%S")}')
+        
+        if not group_id or amount <= 0:
+            return jsonify({'error': 'Invalid group_id or amount'}), 400
+        
+        event = LedgerService.record_withdrawal(
+            member_id=member_id,
+            group_id=group_id,
+            amount=amount,
+            ref=ref,
+            created_by=session['user_id']
+        )
+        
+        return jsonify({
+            'success': True,
+            'eventId': event.id,
+            'message': 'Withdrawal recorded successfully'
+        })
+    except LedgerError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/v1/interest/accrue', methods=['POST'])
+@login_required
+@csrf.exempt
+def api_accrue_interest():
+    """Accrue interest across members using time-weighted allocation"""
+    try:
+        data = request.get_json()
+        group_id = data.get('groupId')
+        accrual_date = date.fromisoformat(data.get('date', date.today().isoformat()))
+        total_interest = Decimal(str(data.get('totalInterest', 0)))
+        ref = data.get('ref', f'interest_{accrual_date.isoformat()}')
+        
+        if not group_id or total_interest <= 0:
+            return jsonify({'error': 'Invalid group_id or totalInterest'}), 400
+        
+        event = LedgerService.accrue_interest(
+            group_id=group_id,
+            accrual_date=accrual_date,
+            total_interest=total_interest,
+            ref=ref
+        )
+        
+        return jsonify({
+            'success': True,
+            'eventId': event.id,
+            'message': 'Interest accrued successfully'
+        })
+    except LedgerError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/v1/members/<int:member_id>/positions/<int:group_id>')
+@login_required
+def api_member_position(member_id, group_id):
+    """Get member's financial position"""
+    try:
+        position = LedgerService.get_member_position(member_id, group_id)
+        return jsonify(position)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/v1/groups/<int:group_id>/balance')
+@login_required
+def api_group_balance(group_id):
+    """Get group's pool balance"""
+    try:
+        balance = LedgerService.get_pool_balance(group_id)
+        return jsonify({
+            'groupId': group_id,
+            'poolBalance': float(balance)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/v1/reconcile/<int:group_id>')
+@login_required
+def api_reconcile(group_id):
+    """Run reconciliation check for a group"""
+    try:
+        results = ReconciliationService.run_full_reconciliation(group_id)
+        return jsonify(results)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/v1/reports/<int:member_id>/<int:year>/statement', methods=['POST'])
+@login_required
+@csrf.exempt
+def api_generate_statement(member_id, year):
+    """Generate year-to-date statement"""
+    try:
+        data = request.get_json() or {}
+        group_id = data.get('groupId')
+        
+        report = TaxReportService.generate_statement(member_id, group_id, year)
+        
+        return jsonify({
+            'success': True,
+            'reportId': report.id,
+            'payload': report.payload,
+            'checksum': report.checksum
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/v1/reports/<int:member_id>/<int:year>/1099-int', methods=['POST'])
+@login_required
+@csrf.exempt
+def api_generate_1099(member_id, year):
+    """Generate 1099-INT report"""
+    try:
+        data = request.get_json()
+        payer_info = data.get('payerInfo', {
+            'name': 'TiKòb Community Savings',
+            'tin': 'XX-XXXXXXX',
+            'address': 'Community Savings Platform'
+        })
+        
+        report = TaxReportService.generate_1099_int(member_id, year, payer_info)
+        
+        return jsonify({
+            'success': True,
+            'reportId': report.id,
+            'payload': report.payload,
+            'checksum': report.checksum
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/v1/reports/<report_id>/finalize', methods=['POST'])
+@login_required
+@csrf.exempt
+def api_finalize_report(report_id):
+    """Finalize a report (no further edits)"""
+    try:
+        report = TaxReportService.finalize_report(report_id)
+        return jsonify({
+            'success': True,
+            'reportId': report.id,
+            'status': report.status,
+            'finalizedAt': report.finalized_at.isoformat()
+        })
+    except LedgerError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.context_processor
 def utility_processor():
