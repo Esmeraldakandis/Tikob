@@ -1,0 +1,358 @@
+/* ========================================
+   TIKÒB FOLKLORIC DESIGN SYSTEM
+   Cultural Storybook Aesthetic
+   ======================================== */
+
+/* ===== CULTURAL COLOR PALETTE ===== */
+:root {
+    --terracotta: #C75B39;
+    --burnt-orange: #D97642;
+    --ochre: #D4A373;
+    --deep-blue: #2C3E50;
+    --midnight-blue: #1A252F;
+    --gold: #D4AF37;
+    --bronze: #CD7F32;
+    --sage: #8A9A5B;
+    --earth-brown: #6F4E37;
+    --sand: #E6D5B8;
+    --parchment: #F4E9D6;
+    --ink: #2B2B2B;
+    
+    /* Gradients */
+    --sunset-gradient: linear-gradient(135deg, var(--burnt-orange) 0%, var(--terracotta) 50%, var(--deep-blue) 100%);
+    --earth-gradient: linear-gradient(135deg, var(--ochre) 0%, var(--earth-brown) 100%);
+    --night-gradient: linear-gradient(135deg, var(--midnight-blue) 0%, var(--deep-blue) 100%);
+}
+
+[data-theme="dark"] {
+    --parchment: #3A3226;
+    --sand: #4A4032;
+    --ink: #E8E1D3;
+}
+
+/* ===== AUTHENTIC TYPOGRAPHY ===== */
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=Spectral:wght@300;400;600;700&family=Playfair+Display:wght@400;700;900&display=swap');
+
+.folklore-heading {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    color: var(--earth-brown);
+    letter-spacing: 0.5px;
+    position: relative;
+    display: inline-block;
+}
+
+[data-theme="dark"] .folklore-heading {
+    color: var(--ochre);
+}
+
+.folklore-subheading {
+    font-family: 'Spectral', serif;
+    font-weight: 600;
+    color: var(--deep-blue);
+    letter-spacing: 0.3px;
+}
+
+[data-theme="dark"] .folklore-subheading {
+    color: var(--sand);
+}
+
+.folklore-body {
+    font-family: 'Crimson Text', serif;
+    font-weight: 400;
+    line-height: 1.8;
+    color: var(--ink);
+    font-size: 1.1rem;
+}
+
+.proverb-text {
+    font-family: 'Crimson Text', serif;
+    font-style: italic;
+    font-size: 1.2rem;
+    color: var(--terracotta);
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.proverb-text::before {
+    content: '"';
+    position: absolute;
+    left: 0;
+    top: -10px;
+    font-size: 3rem;
+    color: var(--gold);
+    opacity: 0.6;
+    font-family: 'Playfair Display', serif;
+}
+
+/* ===== CULTURAL PATTERNS & TEXTURES ===== */
+.kente-border {
+    border: 4px solid;
+    border-image: repeating-linear-gradient(
+        90deg,
+        var(--gold) 0px,
+        var(--gold) 10px,
+        var(--terracotta) 10px,
+        var(--terracotta) 20px,
+        var(--deep-blue) 20px,
+        var(--deep-blue) 30px
+    ) 1;
+    position: relative;
+}
+
+.kente-border::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: repeating-linear-gradient(
+        90deg,
+        var(--gold) 0px,
+        var(--gold) 10px,
+        var(--terracotta) 10px,
+        var(--terracotta) 20px,
+        var(--deep-blue) 20px,
+        var(--deep-blue) 30px
+    );
+}
+
+.parchment-card {
+    background: var(--parchment);
+    border: 2px solid var(--earth-brown);
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 
+        0 4px 6px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    position: relative;
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.parchment-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 30%, rgba(212, 163, 115, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(199, 91, 57, 0.08) 0%, transparent 50%);
+    pointer-events: none;
+    border-radius: 8px;
+}
+
+.parchment-card:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 
+        0 8px 16px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* ===== STORYBOOK PAGE TRANSITIONS ===== */
+@keyframes pageReveal {
+    0% {
+        opacity: 0;
+        transform: perspective(1000px) rotateY(-10deg) translateX(-50px);
+    }
+    100% {
+        opacity: 1;
+        transform: perspective(1000px) rotateY(0deg) translateX(0);
+    }
+}
+
+.page-reveal {
+    animation: pageReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes inkFlow {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+        filter: blur(3px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
+.ink-flow {
+    animation: inkFlow 0.6s ease-out forwards;
+}
+
+/* Stagger children for organic reveal */
+.stagger-reveal > * {
+    opacity: 0;
+    animation: inkFlow 0.6s ease-out forwards;
+}
+
+.stagger-reveal > *:nth-child(1) { animation-delay: 0.1s; }
+.stagger-reveal > *:nth-child(2) { animation-delay: 0.2s; }
+.stagger-reveal > *:nth-child(3) { animation-delay: 0.3s; }
+.stagger-reveal > *:nth-child(4) { animation-delay: 0.4s; }
+.stagger-reveal > *:nth-child(5) { animation-delay: 0.5s; }
+
+/* ===== CULTURAL DECORATIVE ELEMENTS ===== */
+.adinkra-divider {
+    text-align: center;
+    margin: 2rem 0;
+    position: relative;
+}
+
+.adinkra-divider::before,
+.adinkra-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 2px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+}
+
+.adinkra-divider::before {
+    left: 0;
+}
+
+.adinkra-divider::after {
+    right: 0;
+}
+
+.adinkra-symbol {
+    display: inline-block;
+    font-size: 2rem;
+    color: var(--gold);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* ===== FOLKLORIC BUTTON STYLES ===== */
+.btn-folklore {
+    font-family: 'Spectral', serif;
+    font-weight: 600;
+    background: var(--earth-gradient);
+    color: var(--parchment);
+    border: 2px solid var(--earth-brown);
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+}
+
+.btn-folklore::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+}
+
+.btn-folklore:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(111, 78, 55, 0.3);
+}
+
+.btn-folklore:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* ===== CHAT/MESSAGE STYLING ===== */
+.message-scroll {
+    background: var(--parchment);
+    border: 3px solid var(--earth-brown);
+    border-radius: 12px;
+    padding: 1.5rem;
+    max-height: 500px;
+    overflow-y: auto;
+    position: relative;
+    background-image: 
+        linear-gradient(90deg, transparent 0%, rgba(212, 163, 115, 0.05) 50%, transparent 100%);
+}
+
+.message-bubble {
+    background: rgba(230, 213, 184, 0.6);
+    border: 1px solid var(--earth-brown);
+    border-radius: 8px 8px 8px 2px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.message-bubble:hover {
+    background: rgba(244, 233, 214, 0.9);
+    transform: translateX(4px);
+}
+
+.message-bubble.proverb {
+    border-left: 4px solid var(--gold);
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(199, 91, 57, 0.1));
+}
+
+.message-bubble.storyteller {
+    border: 2px solid var(--gold);
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(230, 213, 184, 0.6));
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);
+}
+
+/* ===== CULTURAL EMOJI REACTIONS ===== */
+.cultural-reaction {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    background: rgba(212, 175, 55, 0.2);
+    border: 1px solid var(--gold);
+    border-radius: 12px;
+    margin: 0.25rem;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.cultural-reaction:hover {
+    background: var(--gold);
+    transform: scale(1.1);
+}
+
+/* Common cultural symbols */
+.reaction-harvest::before { content: '🌾'; }
+.reaction-drum::before { content: '🪘'; }
+.reaction-light::before { content: '🕯️'; }
+.reaction-hands::before { content: '🤝'; }
+.reaction-wisdom::before { content: '📜'; }
+.reaction-celebration::before { content: '🎉'; }
+
+/* ===== ORGANIC HOVER EFFECTS ===== */
+.gentle-lift {
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.gentle-lift:hover {
+    transform: translateY(-6px) rotate(0.5deg);
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+@media (max-width: 768px) {
+    .folklore-heading {
+        font-size: 1.75rem;
+    }
+    
+    .parchment-card {
+        padding: 1.5rem;
+    }
+    
+    .proverb-text {
+        font-size: 1.1rem;
+    }
+}

@@ -65,6 +65,7 @@ class Member(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     approval_status = db.Column(db.String(20), default='approved')
     is_ghost = db.Column(db.Boolean, default=False)
+    is_storyteller = db.Column(db.Boolean, default=False)
     reliability_score = db.Column(db.Integer, default=100)
     
     user = db.relationship('User', back_populates='memberships')
@@ -250,3 +251,34 @@ class PersonalTransaction(db.Model):
     
     user = db.relationship('User', backref='personal_transactions')
     plaid_account = db.relationship('PlaidAccount', backref='transactions')
+
+class GroupMessage(db.Model):
+    __tablename__ = 'group_message'
+    id = db.Column(db.Integer, primary_key=True)
+    group_id = db.Column(db.Integer, db.ForeignKey('group.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    message_type = db.Column(db.String(20), default='text')
+    is_proverb = db.Column(db.Boolean, default=False)
+    proverb_context = db.Column(db.Text)
+    parent_message_id = db.Column(db.Integer, db.ForeignKey('group_message.id'))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    edited_at = db.Column(db.DateTime)
+    
+    group = db.relationship('Group', backref='messages')
+    user = db.relationship('User', backref='messages')
+    parent = db.relationship('GroupMessage', remote_side=[id], backref='replies')
+    reactions = db.relationship('MessageReaction', back_populates='message', cascade='all, delete-orphan')
+
+class MessageReaction(db.Model):
+    __tablename__ = 'message_reaction'
+    id = db.Column(db.Integer, primary_key=True)
+    message_id = db.Column(db.Integer, db.ForeignKey('group_message.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    emoji = db.Column(db.String(50), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    message = db.relationship('GroupMessage', back_populates='reactions')
+    user = db.relationship('User', backref='reactions')
+    
+    __table_args__ = (db.UniqueConstraint('message_id', 'user_id', 'emoji', name='unique_message_reaction'),)

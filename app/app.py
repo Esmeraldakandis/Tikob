@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file, Response
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file, Response, jsonify
 from flask_wtf.csrf import CSRFProtect
 from flask_migrate import Migrate
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_talisman import Talisman
-from models import db, User, Group, Member, Transaction, Badge, UserBadge
+from flask_socketio import SocketIO, emit, join_room, leave_room
+from models import db, User, Group, Member, Transaction, Badge, UserBadge, GroupMessage, MessageReaction
 from werkzeug.utils import secure_filename
 from utils import convert_currency, get_random_quote, check_and_award_badges, generate_group_report_csv, get_financial_advice, seed_initial_data, cleanup_old_receipts
 from notifications import send_contribution_notification, send_approval_notification, send_badge_notification, send_payout_notification
@@ -36,6 +37,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 csrf = CSRFProtect(app)
 migrate = Migrate(app, db)
 db.init_app(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 limiter = Limiter(
     app=app,
@@ -1057,6 +1059,118 @@ def set_language(lang):
         flash(get_community_phrase('welcome', lang), 'success')
     return redirect(request.referrer or url_for('dashboard'))
 
+@app.route('/group/<int:group_id>/chat')
+@login_required
+def group_chat(group_id):
+    """Folkloric group chat page"""
+    group = Group.query.get_or_404(group_id)
+    member = Member.query.filter_by(group_id=group_id, user_id=session['user_id'], is_active=True).first()
+    
+    if not member:
+        flash('You must be a member to access this group chat.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    messages = GroupMessage.query.filter_by(group_id=group_id).order_by(GroupMessage.created_at.asc()).limit(100).all()
+    members = Member.query.filter_by(group_id=group_id, is_active=True).all()
+    
+    language = session.get('language', 'en')
+    proverbs = [
+        get_random_proverb(language),
+        "Unity is strength, division is weakness.",
+        "Little by little fills the measure.",
+        "Many hands make light work."
+    ]
+    
+    tradition_name = group.tradition.display_name if group.tradition else "Community"
+    tradition_icon = group.tradition.icon if group.tradition else "🌍"
+    
+    return render_template('group_chat.html',
+                          group=group,
+                          messages=messages,
+                          members=members,
+                          proverbs=proverbs,
+                          tradition_name=tradition_name,
+                          tradition_icon=tradition_icon,
+                          current_user_id=session['user_id'])
+
+@app.route('/api/random-proverb')
+@login_required
+def random_proverb_api():
+    """API endpoint for random proverbs"""
+    language = session.get('language', 'en')
+    proverb = get_random_proverb(language)
+    return jsonify({'proverb': proverb})
+
+@socketio.on('join_group')
+def on_join_group(data):
+    """Join a group's chat room"""
+    group_id = data.get('group_id')
+    if group_id:
+        join_room(f'group_{group_id}')
+        emit('message', {'msg': 'Welcome to the story circle!'}, room=request.sid)
+
+@socketio.on('send_message')
+def on_send_message(data):
+    """Handle new messages"""
+    if 'user_id' not in session:
+        return
+    
+    group_id = data.get('group_id')
+    content = data.get('content')
+    is_proverb = data.get('is_proverb', False)
+    proverb_context = data.get('proverb_context')
+    
+    if group_id and content:
+        user = User.query.get(session['user_id'])
+        member = Member.query.filter_by(group_id=group_id, user_id=session['user_id']).first()
+        
+        if user and member:
+            message = GroupMessage(
+                group_id=group_id,
+                user_id=session['user_id'],
+                content=content,
+                is_proverb=is_proverb,
+                proverb_context=proverb_context
+            )
+            db.session.add(message)
+            db.session.commit()
+            
+            emit('new_message', {
+                'group_id': group_id,
+                'message_id': message.id,
+                'username': user.username,
+                'content': content,
+                'is_proverb': is_proverb,
+                'proverb_context': proverb_context,
+                'is_storyteller': member.is_storyteller,
+                'created_at': message.created_at.isoformat()
+            }, room=f'group_{group_id}')
+
+@socketio.on('add_reaction')
+def on_add_reaction(data):
+    """Handle message reactions"""
+    if 'user_id' not in session:
+        return
+    
+    message_id = data.get('message_id')
+    emoji = data.get('emoji')
+    
+    if message_id and emoji:
+        existing = MessageReaction.query.filter_by(
+            message_id=message_id,
+            user_id=session['user_id'],
+            emoji=emoji
+        ).first()
+        
+        if not existing:
+            reaction = MessageReaction(
+                message_id=message_id,
+                user_id=session['user_id'],
+                emoji=emoji
+            )
+            db.session.add(reaction)
+            db.session.commit()
+
 @app.context_processor
 def utility_processor():
     """Make utility functions available to all templates"""
@@ -1069,4 +1183,4 @@ def utility_processor():
     }
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
