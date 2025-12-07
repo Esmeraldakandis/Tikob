@@ -4,7 +4,7 @@
 TiKòb is a Flask-based web application designed to manage community savings groups (tontines). It enables users to create, join, and administer savings groups, facilitating transparent tracking of contributions and payouts. The project aims to empower community-based savings and lending with a user-friendly and feature-rich platform, incorporating cultural financial wisdom and gamification to enhance engagement. It features a professional-grade double-entry bookkeeping system for robust financial tracking, including time-weighted interest allocation and tax reporting capabilities.
 
 ## User Preferences
-No specific preferences documented yet.
+- **License**: AGPL-3.0 chosen for protection against competitors taking code without contributing back
 
 ## System Architecture
 TiKòb is built with Python 3.11 and Flask 3.1.2, using SQLite with Flask-SQLAlchemy for the database and Jinja2 templates with Bootstrap 5 for the frontend. Authentication is session-based.
