@@ -12,11 +12,12 @@ TiKòb is built with Python 3.11 and Flask 3.1.2, using SQLite with Flask-SQLAlc
 **Key Features:**
 - **User & Group Management**: Secure user accounts, group creation, joining, and membership administration.
 - **Financial Tracking**: Comprehensive transaction ledger with double-entry bookkeeping, immutable event sourcing, decimal precision, and reconciliation services. This includes tracking contributions, payouts, and time-weighted interest allocation.
+- **Impact Visualizer Dashboard**: Animated dashboard with 3D metric cards, global community map visualization, savings milestones with confetti/fireworks celebrations, streak tracking, and user statistics. Fully responsive and localized.
 - **Premium UI/UX**: Glassmorphism design system, animated gradients, premium typography, AOS scroll animations, micro-interactions, floating particles background, and fully responsive layouts.
 - **Cultural & Global Inclusivity**: Integration of Haitian proverbs, multi-language support (English/Haitian Creole), dark mode, and support for various cultural savings traditions (e.g., Susu, ROSCA, Tanda).
 - **Gamification**: XP system, streak tracking, reputation scoring, an animated tier-based badge system (Gold, Silver, Platinum, Elite), and leaderboards.
 - **Personalized Recommendations**: A multi-step financial survey generates personalized group recommendations and financial insights.
-- **Security & Performance**: CSRF protection, security headers, optimized database queries, and comprehensive integration testing.
+- **Security & Performance**: CSRF protection, security headers, login blocking after 5 failed attempts, optimized database queries, and comprehensive integration testing.
 
 **Core Database Models:**
 - `User`: Manages user accounts.
