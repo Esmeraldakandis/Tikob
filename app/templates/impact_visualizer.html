@@ -1,0 +1,891 @@
+{% extends "base.html" %}
+
+{% block title %}{% if language == 'ht' %}Vizualizè Enpak{% else %}Impact Visualizer{% endif %} - TiKòb{% endblock %}
+
+{% block extra_css %}
+<style>
+.impact-hero {
+    background: linear-gradient(135deg, var(--mahogany) 0%, #3d1a0a 100%);
+    border-radius: 24px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    color: white;
+}
+
+@media (min-width: 768px) {
+    .impact-hero {
+        padding: 3rem;
+    }
+}
+
+.impact-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 159, 28, 0.1) 0%, transparent 70%);
+    animation: rotateGlow 20s linear infinite;
+}
+
+@keyframes rotateGlow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.world-map-container {
+    background: linear-gradient(180deg, rgba(46, 196, 182, 0.05) 0%, rgba(45, 90, 39, 0.08) 100%);
+    border-radius: 20px;
+    padding: 1.5rem;
+    position: relative;
+    min-height: 250px;
+    overflow: hidden;
+    border: 1px solid rgba(46, 196, 182, 0.2);
+}
+
+@media (min-width: 768px) {
+    .world-map-container {
+        min-height: 400px;
+        padding: 2rem;
+    }
+}
+
+.world-map {
+    width: 100%;
+    height: 200px;
+    position: relative;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 500'%3E%3Cpath fill='%232EC4B6' fill-opacity='0.15' d='M150 100 Q200 80 250 100 Q280 90 300 110 Q350 80 400 100 Q430 90 450 110 Q500 90 550 120 L550 150 Q520 180 480 160 Q430 180 380 150 Q330 180 280 160 Q230 170 180 140 Q150 160 120 130 Z M600 90 Q650 70 700 100 Q740 80 780 110 Q820 90 860 120 L860 160 Q820 180 780 150 Q730 180 680 160 Q640 170 600 140 Z M100 200 Q150 180 200 210 Q250 190 300 220 Q350 200 400 230 Q450 210 500 240 L500 280 Q460 300 420 270 Q370 290 320 260 Q270 280 220 250 Q170 270 120 240 Z M550 220 Q600 200 650 230 Q700 210 750 240 Q800 220 850 250 L850 290 Q810 310 770 280 Q720 300 670 270 Q620 290 570 260 Z M200 320 Q250 300 300 330 Q350 310 400 340 Q450 320 500 350 L500 390 Q460 410 420 380 Q370 400 320 370 Q270 390 220 360 Q180 380 150 350 Z'/%3E%3C/svg%3E") center/cover no-repeat;
+}
+
+@media (min-width: 768px) {
+    .world-map {
+        height: 350px;
+    }
+}
+
+.contribution-dot {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    animation: pulseContribution 2s ease-in-out infinite;
+}
+
+@media (min-width: 768px) {
+    .contribution-dot {
+        width: 12px;
+        height: 12px;
+    }
+}
+
+.contribution-dot::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: inherit;
+    opacity: 0.3;
+    animation: ripple 2s ease-out infinite;
+}
+
+@keyframes pulseContribution {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.3); opacity: 0.8; }
+}
+
+@keyframes ripple {
+    0% { width: 10px; height: 10px; opacity: 0.5; }
+    100% { width: 40px; height: 40px; opacity: 0; }
+}
+
+.dot-haiti { background: var(--mango); left: 25%; top: 40%; animation-delay: 0s; }
+.dot-africa { background: var(--palm-green); left: 50%; top: 45%; animation-delay: 0.5s; }
+.dot-caribbean { background: var(--ocean); left: 22%; top: 42%; animation-delay: 1s; }
+.dot-us { background: var(--mahogany); left: 18%; top: 30%; animation-delay: 1.5s; }
+.dot-uk { background: #9b59b6; left: 48%; top: 25%; animation-delay: 2s; }
+.dot-asia { background: #e74c3c; left: 75%; top: 35%; animation-delay: 0.7s; }
+.dot-brazil { background: #f39c12; left: 30%; top: 60%; animation-delay: 1.2s; }
+.dot-india { background: #1abc9c; left: 68%; top: 40%; animation-delay: 1.8s; }
+
+.live-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    background: #2ecc71;
+    border-radius: 50%;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.metric-card-3d {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.5s ease;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+@media (min-width: 768px) {
+    .metric-card-3d {
+        border-radius: 20px;
+        padding: 2rem;
+    }
+}
+
+.metric-card-3d:hover {
+    transform: translateY(-5px);
+}
+
+@media (min-width: 768px) {
+    .metric-card-3d:hover {
+        transform: translateY(-10px) rotateX(5deg);
+    }
+}
+
+.metric-card-3d::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--mango), var(--ocean));
+}
+
+.metric-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    margin: 0 auto 1rem;
+    position: relative;
+}
+
+@media (min-width: 768px) {
+    .metric-icon {
+        width: 80px;
+        height: 80px;
+        font-size: 2.5rem;
+        margin-bottom: 1.5rem;
+    }
+}
+
+.metric-icon-savings {
+    background: linear-gradient(135deg, rgba(255, 159, 28, 0.2) 0%, rgba(255, 159, 28, 0.1) 100%);
+    box-shadow: 0 0 30px rgba(255, 159, 28, 0.3);
+}
+
+.metric-icon-people {
+    background: linear-gradient(135deg, rgba(46, 196, 182, 0.2) 0%, rgba(46, 196, 182, 0.1) 100%);
+    box-shadow: 0 0 30px rgba(46, 196, 182, 0.3);
+}
+
+.metric-icon-groups {
+    background: linear-gradient(135deg, rgba(45, 90, 39, 0.2) 0%, rgba(45, 90, 39, 0.1) 100%);
+    box-shadow: 0 0 30px rgba(45, 90, 39, 0.3);
+}
+
+.metric-icon-communities {
+    background: linear-gradient(135deg, rgba(93, 64, 55, 0.2) 0%, rgba(93, 64, 55, 0.1) 100%);
+    box-shadow: 0 0 30px rgba(93, 64, 55, 0.3);
+}
+
+.metric-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--mango) 0%, var(--mahogany) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+@media (min-width: 768px) {
+    .metric-value {
+        font-size: 3rem;
+    }
+}
+
+.metric-label {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+@media (min-width: 768px) {
+    .metric-label {
+        font-size: 1rem;
+    }
+}
+
+.milestone-track {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    padding: 1.5rem 0;
+    overflow-x: auto;
+    gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+    .milestone-track {
+        padding: 2rem 0;
+        overflow-x: visible;
+    }
+}
+
+.milestone-track::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--border-color);
+    transform: translateY(-50%);
+    z-index: 0;
+}
+
+.milestone-progress {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--mango), var(--ocean));
+    transform: translateY(-50%);
+    z-index: 1;
+    transition: width 1s ease-out;
+}
+
+.milestone {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+.milestone:hover {
+    transform: scale(1.1);
+}
+
+.milestone-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    margin: 0 auto 0.5rem;
+    border: 3px solid var(--border-color);
+    background: var(--card-bg);
+    transition: all 0.3s ease;
+}
+
+@media (min-width: 768px) {
+    .milestone-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+}
+
+.milestone.achieved .milestone-icon {
+    background: linear-gradient(135deg, var(--mango) 0%, #ffb347 100%);
+    border-color: var(--mango);
+    box-shadow: 0 0 20px rgba(255, 159, 28, 0.5);
+    animation: achievedPulse 2s ease-in-out infinite;
+}
+
+@keyframes achievedPulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(255, 159, 28, 0.5); }
+    50% { box-shadow: 0 0 40px rgba(255, 159, 28, 0.8); }
+}
+
+.milestone-label {
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    max-width: 60px;
+}
+
+@media (min-width: 768px) {
+    .milestone-label {
+        font-size: 0.75rem;
+        max-width: 80px;
+    }
+}
+
+.milestone.achieved .milestone-label {
+    color: var(--mango);
+    font-weight: 600;
+}
+
+.activity-feed {
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+@media (min-width: 768px) {
+    .activity-feed {
+        max-height: 400px;
+    }
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 12px;
+    margin-bottom: 0.5rem;
+    background: rgba(255, 159, 28, 0.03);
+    border-left: 3px solid var(--mango);
+    animation: slideInRight 0.5s ease-out;
+}
+
+@media (min-width: 768px) {
+    .activity-item {
+        gap: 1rem;
+        padding: 1rem;
+    }
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.activity-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+}
+
+.activity-icon-contribution {
+    background: rgba(46, 196, 182, 0.15);
+}
+
+.activity-icon-payout {
+    background: rgba(255, 159, 28, 0.15);
+}
+
+.activity-icon-join {
+    background: rgba(45, 90, 39, 0.15);
+}
+
+.confetti-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+}
+
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    animation: confettiFall 3s ease-out forwards;
+}
+
+@keyframes confettiFall {
+    0% { transform: translateY(-100%) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+.firework {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+}
+
+@keyframes fireworkParticle {
+    0% { transform: translate(0, 0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+}
+
+.counter-up {
+    transition: all 0.5s ease-out;
+}
+
+.celebration-btn {
+    background: linear-gradient(135deg, var(--mango) 0%, var(--mahogany) 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+    .celebration-btn {
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+    }
+}
+
+.celebration-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(255, 159, 28, 0.4);
+}
+
+.streak-flame {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.streak-flame span {
+    animation: flameFlicker 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes flameFlicker {
+    from { transform: scale(1); }
+    to { transform: scale(1.2); }
+}
+
+.map-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+    .map-legend {
+        gap: 1rem;
+    }
+}
+
+.map-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+}
+
+@media (min-width: 768px) {
+    .map-legend-item {
+        font-size: 0.9rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="confetti-container" class="confetti-container"></div>
+
+<div class="impact-hero mb-4 mb-md-5" data-aos="fade-down">
+    <div class="row align-items-center position-relative" style="z-index: 1;">
+        <div class="col-lg-8">
+            <div class="live-indicator mb-3">
+                <span class="live-dot"></span>
+                {% if language == 'ht' %}Aktivite an Dirèk{% else %}Live Activity{% endif %}
+            </div>
+            <h1 class="display-5 display-md-4 fw-bold mb-3">
+                {% if language == 'ht' %}Vizualizè Enpak{% else %}Impact Visualizer{% endif %}
+            </h1>
+            <p class="lead mb-0 opacity-75">
+                {% if language == 'ht' %}
+                Wè kijan kontribisyon ou ap ede kominote a grandi pi fò ansanm.
+                {% else %}
+                See how your contributions are helping the community grow stronger together.
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-lg-4 text-center d-none d-lg-block">
+            <div class="animate-float">
+                <img src="{{ url_for('static', filename='images/haiti-emblem.svg') }}" alt="TiKòb" style="width: 150px; height: 150px; filter: drop-shadow(0 4px 20px rgba(255, 159, 28, 0.5));">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4 mb-md-5 stagger-in">
+    <div class="col-6 col-lg-3 mb-3 mb-lg-4" data-aos="fade-up" data-aos-delay="0">
+        <div class="metric-card-3d">
+            <div class="metric-icon metric-icon-savings">💰</div>
+            <div class="metric-value counter-up" data-target="{{ stats.my_savings|int }}">$0</div>
+            <div class="metric-label">{% if language == 'ht' %}Ekonomi Mwen{% else %}My Savings{% endif %}</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 mb-3 mb-lg-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="metric-card-3d">
+            <div class="metric-icon metric-icon-people">🏛️</div>
+            <div class="metric-value counter-up" data-target="{{ stats.my_groups }}">0</div>
+            <div class="metric-label">{% if language == 'ht' %}Gwoup Mwen{% else %}My Groups{% endif %}</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 mb-3 mb-lg-4" data-aos="fade-up" data-aos-delay="200">
+        <div class="metric-card-3d">
+            <div class="metric-icon metric-icon-groups">👥</div>
+            <div class="metric-value counter-up" data-target="{{ stats.total_members }}">0</div>
+            <div class="metric-label">{% if language == 'ht' %}Manm Platfòm{% else %}Platform Members{% endif %}</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3 mb-3 mb-lg-4" data-aos="fade-up" data-aos-delay="300">
+        <div class="metric-card-3d">
+            <div class="metric-icon metric-icon-communities">🌍</div>
+            <div class="metric-value counter-up" data-target="{{ stats.total_groups }}">0</div>
+            <div class="metric-label">{% if language == 'ht' %}Gwoup Total{% else %}Total Groups{% endif %}</div>
+        </div>
+    </div>
+</div>
+
+<div class="lakou-card mb-4 mb-md-5" data-aos="fade-up">
+    <h3 class="lakou-heading mb-3 mb-md-4 d-flex align-items-center gap-2 flex-wrap">
+        <span>🗺️</span> 
+        <span>{% if language == 'ht' %}Kominote Mondyal{% else %}Global Community{% endif %}</span>
+        <span class="live-indicator ms-auto">
+            <span class="live-dot"></span> 
+            {% if language == 'ht' %}Aktif{% else %}Active{% endif %}
+        </span>
+    </h3>
+    <p class="lakou-body mb-3" style="color: var(--text-secondary);">
+        {% if language == 'ht' %}
+        TiKòb konekte kominote atravè mond lan ki pratike epay kolektif tradisyonèl.
+        {% else %}
+        TiKòb connects communities around the world practicing traditional collective savings.
+        {% endif %}
+    </p>
+    <div class="world-map-container">
+        <div class="world-map">
+            <div class="contribution-dot dot-haiti" title="Haiti"></div>
+            <div class="contribution-dot dot-africa" title="West Africa"></div>
+            <div class="contribution-dot dot-caribbean" title="Caribbean"></div>
+            <div class="contribution-dot dot-us" title="United States"></div>
+            <div class="contribution-dot dot-uk" title="United Kingdom"></div>
+            <div class="contribution-dot dot-asia" title="East Asia"></div>
+            <div class="contribution-dot dot-brazil" title="Brazil"></div>
+            <div class="contribution-dot dot-india" title="India"></div>
+        </div>
+    </div>
+    <div class="map-legend mt-3">
+        <span class="map-legend-item">
+            <span style="width: 12px; height: 12px; border-radius: 50%; background: var(--mango);"></span>
+            Haiti
+        </span>
+        <span class="map-legend-item">
+            <span style="width: 12px; height: 12px; border-radius: 50%; background: var(--palm-green);"></span>
+            {% if language == 'ht' %}Afrik Lwès{% else %}West Africa{% endif %}
+        </span>
+        <span class="map-legend-item">
+            <span style="width: 12px; height: 12px; border-radius: 50%; background: var(--ocean);"></span>
+            {% if language == 'ht' %}Karayib{% else %}Caribbean{% endif %}
+        </span>
+        <span class="map-legend-item">
+            <span style="width: 12px; height: 12px; border-radius: 50%; background: var(--mahogany);"></span>
+            {% if language == 'ht' %}Amerik{% else %}Americas{% endif %}
+        </span>
+        <span class="map-legend-item">
+            <span style="width: 12px; height: 12px; border-radius: 50%; background: #9b59b6;"></span>
+            {% if language == 'ht' %}Ewòp{% else %}Europe{% endif %}
+        </span>
+        <span class="map-legend-item">
+            <span style="width: 12px; height: 12px; border-radius: 50%; background: #1abc9c;"></span>
+            {% if language == 'ht' %}Azi{% else %}Asia{% endif %}
+        </span>
+    </div>
+</div>
+
+<div class="lakou-card mb-4 mb-md-5" data-aos="fade-up">
+    <h3 class="lakou-heading mb-3 mb-md-4 d-flex align-items-center gap-2">
+        <span>🏆</span> {% if language == 'ht' %}Etap Ekonomi Mwen{% else %}My Savings Milestones{% endif %}
+    </h3>
+    <p class="lakou-body mb-3" style="color: var(--text-secondary);">
+        {% if language == 'ht' %}
+        Swiv pwogrè ou epi selebre lè ou rive nan chak etap!
+        {% else %}
+        Track your progress and celebrate when you reach each milestone!
+        {% endif %}
+    </p>
+    <div class="milestone-track">
+        <div class="milestone-progress" style="width: {{ milestone_progress }}%;"></div>
+        
+        <div class="milestone {{ 'achieved' if 'first_step' in milestones_achieved else '' }}" onclick="celebrateMilestone(this)">
+            <div class="milestone-icon">🌱</div>
+            <div class="milestone-label">$100 {% if language == 'ht' %}Premye Pa{% else %}First Step{% endif %}</div>
+        </div>
+        
+        <div class="milestone {{ 'achieved' if 'growing' in milestones_achieved else '' }}" onclick="celebrateMilestone(this)">
+            <div class="milestone-icon">🌿</div>
+            <div class="milestone-label">$500 {% if language == 'ht' %}Ap Grandi{% else %}Growing{% endif %}</div>
+        </div>
+        
+        <div class="milestone {{ 'achieved' if 'strong' in milestones_achieved else '' }}" onclick="celebrateMilestone(this)">
+            <div class="milestone-icon">🌳</div>
+            <div class="milestone-label">$1K {% if language == 'ht' %}Fò{% else %}Strong{% endif %}</div>
+        </div>
+        
+        <div class="milestone {{ 'achieved' if 'super' in milestones_achieved else '' }}" onclick="celebrateMilestone(this)">
+            <div class="milestone-icon">🏔️</div>
+            <div class="milestone-label">$5K {% if language == 'ht' %}Sipè{% else %}Super{% endif %}</div>
+        </div>
+        
+        <div class="milestone {{ 'achieved' if 'legend' in milestones_achieved else '' }}" onclick="celebrateMilestone(this)">
+            <div class="milestone-icon">🚀</div>
+            <div class="milestone-label">$10K {% if language == 'ht' %}Legand{% else %}Legend{% endif %}</div>
+        </div>
+    </div>
+    
+    <div class="text-center mt-4">
+        <button class="celebration-btn" onclick="triggerCelebration()">
+            🎉 {% if language == 'ht' %}Selebre Siksè Mwen{% else %}Celebrate My Success{% endif %}
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4" data-aos="fade-up">
+        <div class="lakou-card h-100">
+            <h3 class="lakou-heading mb-3 mb-md-4 d-flex align-items-center gap-2">
+                <span>⚡</span> {% if language == 'ht' %}Aktivite Gwoup Mwen{% else %}My Groups' Activity{% endif %}
+            </h3>
+            <div class="activity-feed">
+                {% for activity in recent_activities %}
+                <div class="activity-item" style="animation-delay: {{ loop.index0 * 0.1 }}s;">
+                    <div class="activity-icon activity-icon-{{ activity.type }}">
+                        {% if activity.type == 'contribution' %}💵
+                        {% elif activity.type == 'payout' %}🎁
+                        {% else %}🤝{% endif %}
+                    </div>
+                    <div>
+                        <div class="lakou-body fw-bold">{{ activity.description }}</div>
+                        <small style="color: var(--text-secondary);">{{ activity.time }}</small>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <div style="font-size: 3rem;" class="mb-2">🌟</div>
+                    <p class="lakou-body" style="color: var(--text-secondary);">
+                        {% if language == 'ht' %}Pa gen aktivite ankò. Kòmanse kontribiye!{% else %}No activity yet. Start contributing!{% endif %}
+                    </p>
+                    <a href="{{ url_for('dashboard') }}" class="btn-konbit btn-konbit-secondary">
+                        {% if language == 'ht' %}Ale nan Tablo{% else %}Go to Dashboard{% endif %}
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="lakou-card h-100">
+            <h3 class="lakou-heading mb-3 mb-md-4 d-flex align-items-center gap-2">
+                <span>🔥</span> {% if language == 'ht' %}Estatistik Mwen{% else %}My Stats{% endif %}
+            </h3>
+            
+            <div class="d-flex align-items-center gap-3 mb-4 p-3" style="background: rgba(255, 107, 53, 0.1); border-radius: 12px;">
+                <div class="streak-flame">
+                    <span>🔥</span> {{ user_stats.streak }} {% if language == 'ht' %}jou{% else %}day{% endif %}
+                </div>
+                <div class="ms-auto lakou-body" style="font-size: 0.9rem;">
+                    {% if language == 'ht' %}Kontribisyon konsekitif{% else %}Contribution streak{% endif %}
+                </div>
+            </div>
+            
+            <div class="row g-3">
+                <div class="col-6">
+                    <div class="p-3 text-center" style="background: rgba(255, 159, 28, 0.05); border-radius: 12px;">
+                        <div style="font-size: 2rem;">💰</div>
+                        <div class="lakou-heading">${{ "%.2f"|format(user_stats.total_contributed) }}</div>
+                        <small style="color: var(--text-secondary);">{% if language == 'ht' %}Kontribisyon{% else %}Contributed{% endif %}</small>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-3 text-center" style="background: rgba(46, 196, 182, 0.05); border-radius: 12px;">
+                        <div style="font-size: 2rem;">⭐</div>
+                        <div class="lakou-heading">{{ user_stats.xp }} XP</div>
+                        <small style="color: var(--text-secondary);">{% if language == 'ht' %}Eksperyans{% else %}Experience{% endif %}</small>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-3 text-center" style="background: rgba(45, 90, 39, 0.05); border-radius: 12px;">
+                        <div style="font-size: 2rem;">🏅</div>
+                        <div class="lakou-heading">{{ user_stats.badges }}</div>
+                        <small style="color: var(--text-secondary);">{% if language == 'ht' %}Badj{% else %}Badges{% endif %}</small>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-3 text-center" style="background: rgba(93, 64, 55, 0.05); border-radius: 12px;">
+                        <div style="font-size: 2rem;">💎</div>
+                        <div class="lakou-heading">{{ user_stats.reputation }}</div>
+                        <small style="color: var(--text-secondary);">{% if language == 'ht' %}Reputasyon{% else %}Reputation{% endif %}</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 text-center">
+                <a href="{{ url_for('my_badges') }}" class="btn-konbit btn-konbit-secondary">
+                    🏆 {% if language == 'ht' %}Wè Tout Badj{% else %}View All Badges{% endif %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const counters = document.querySelectorAll('.counter-up');
+    
+    const animateCounter = (el) => {
+        const target = parseInt(el.dataset.target) || 0;
+        const isMonetary = el.textContent.includes('$');
+        const duration = 2000;
+        const step = target / (duration / 16);
+        let current = 0;
+        
+        const update = () => {
+            current += step;
+            if (current < target) {
+                el.textContent = isMonetary ? `$${Math.floor(current).toLocaleString()}` : Math.floor(current).toLocaleString();
+                requestAnimationFrame(update);
+            } else {
+                el.textContent = isMonetary ? `$${target.toLocaleString()}` : target.toLocaleString();
+            }
+        };
+        
+        update();
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateCounter(entry.target);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.5 });
+    
+    counters.forEach(counter => observer.observe(counter));
+    
+    const achievedMilestones = document.querySelectorAll('.milestone.achieved');
+    if (achievedMilestones.length > 0) {
+        setTimeout(() => {
+            triggerCelebration();
+        }, 1500);
+    }
+});
+
+function triggerCelebration() {
+    const container = document.getElementById('confetti-container');
+    const colors = ['#FF9F1C', '#2EC4B6', '#5D4037', '#2D5A27', '#E76F51'];
+    
+    for (let i = 0; i < 100; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.animationDelay = Math.random() * 0.5 + 's';
+        confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+        
+        if (Math.random() > 0.5) {
+            confetti.style.borderRadius = '50%';
+        }
+        
+        container.appendChild(confetti);
+        
+        setTimeout(() => confetti.remove(), 3500);
+    }
+    
+    for (let i = 0; i < 8; i++) {
+        setTimeout(() => createFirework(), i * 150);
+    }
+}
+
+function createFirework() {
+    const container = document.getElementById('confetti-container');
+    const colors = ['#FF9F1C', '#2EC4B6', '#E76F51', '#FFD700'];
+    const x = Math.random() * window.innerWidth;
+    const y = Math.random() * window.innerHeight * 0.5;
+    
+    for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'firework';
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+        
+        const angle = (i / 20) * Math.PI * 2;
+        const velocity = 50 + Math.random() * 50;
+        const tx = Math.cos(angle) * velocity;
+        const ty = Math.sin(angle) * velocity;
+        particle.style.setProperty('--tx', tx + 'px');
+        particle.style.setProperty('--ty', ty + 'px');
+        particle.style.animation = 'fireworkParticle 1s ease-out forwards';
+        
+        container.appendChild(particle);
+        setTimeout(() => particle.remove(), 1000);
+    }
+}
+
+function celebrateMilestone(element) {
+    if (element.classList.contains('achieved')) {
+        triggerCelebration();
+    }
+}
+</script>
+{% endblock %}

@@ -267,6 +267,120 @@ def dashboard():
                           language=language,
                           has_survey=has_survey)
 
+@app.route('/impact')
+@login_required
+def impact_visualizer():
+    from sqlalchemy import func
+    
+    user = db.session.get(User, session['user_id'])
+    language = session.get('language', 'en')
+    
+    user_group_ids = [m.group_id for m in Member.query.filter_by(user_id=user.id, is_active=True).all()]
+    
+    my_contributions = db.session.query(
+        func.coalesce(func.sum(Transaction.amount), 0)
+    ).filter(
+        Transaction.user_id == user.id,
+        Transaction.transaction_type == 'contribution'
+    ).scalar() or 0
+    
+    my_payouts = db.session.query(
+        func.coalesce(func.sum(Transaction.amount), 0)
+    ).filter(
+        Transaction.user_id == user.id,
+        Transaction.transaction_type == 'payout'
+    ).scalar() or 0
+    
+    my_net_savings = float(my_contributions) - float(my_payouts)
+    
+    community_contributions = db.session.query(
+        func.coalesce(func.sum(Transaction.amount), 0)
+    ).filter(Transaction.transaction_type == 'contribution').scalar() or 0
+    
+    community_payouts = db.session.query(
+        func.coalesce(func.sum(Transaction.amount), 0)
+    ).filter(Transaction.transaction_type == 'payout').scalar() or 0
+    
+    community_net = float(community_contributions) - float(community_payouts)
+    
+    total_members = User.query.count()
+    total_groups = Group.query.count()
+    
+    stats = {
+        'my_savings': my_net_savings,
+        'community_savings': community_net,
+        'total_members': total_members,
+        'total_groups': total_groups,
+        'my_groups': len(user_group_ids),
+        'countries': 8
+    }
+    
+    if my_net_savings >= 10000:
+        milestone_progress = 100
+    elif my_net_savings >= 5000:
+        milestone_progress = 80
+    elif my_net_savings >= 1000:
+        milestone_progress = 60
+    elif my_net_savings >= 500:
+        milestone_progress = 40
+    elif my_net_savings >= 100:
+        milestone_progress = 20
+    else:
+        milestone_progress = max(5, (my_net_savings / 100) * 20) if my_net_savings > 0 else 5
+    
+    recent_transactions = Transaction.query.filter(
+        Transaction.group_id.in_(user_group_ids)
+    ).order_by(
+        Transaction.timestamp.desc()
+    ).limit(10).all() if user_group_ids else []
+    
+    recent_activities = []
+    for tx in recent_transactions:
+        if tx.transaction_type == 'contribution':
+            activity_type = 'contribution'
+            desc = f"${tx.amount:.2f} contribution"
+        elif tx.transaction_type == 'payout':
+            activity_type = 'payout'
+            desc = f"${tx.amount:.2f} payout received"
+        else:
+            activity_type = 'contribution'
+            desc = f"${tx.amount:.2f} transaction"
+        
+        time_str = tx.timestamp.strftime('%b %d, %H:%M') if tx.timestamp else 'Recently'
+        recent_activities.append({
+            'type': activity_type,
+            'description': desc,
+            'time': time_str
+        })
+    
+    milestones_achieved = []
+    if my_net_savings >= 100:
+        milestones_achieved.append('first_step')
+    if my_net_savings >= 500:
+        milestones_achieved.append('growing')
+    if my_net_savings >= 1000:
+        milestones_achieved.append('strong')
+    if my_net_savings >= 5000:
+        milestones_achieved.append('super')
+    if my_net_savings >= 10000:
+        milestones_achieved.append('legend')
+    
+    user_stats = {
+        'total_contributed': float(my_contributions),
+        'streak': user.contribution_streak or 0,
+        'xp': user.xp or 0,
+        'badges': UserBadge.query.filter_by(user_id=user.id).count(),
+        'reputation': user.reputation or 0
+    }
+    
+    return render_template('impact_visualizer.html',
+                          stats=stats,
+                          milestone_progress=milestone_progress,
+                          milestones_achieved=milestones_achieved,
+                          recent_activities=recent_activities,
+                          user_stats=user_stats,
+                          language=language)
+
 @app.route('/create-group', methods=['GET', 'POST'])
 @login_required
 def create_group():
