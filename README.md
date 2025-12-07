@@ -9,7 +9,7 @@
   
   [![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://python.org)
   [![Flask](https://img.shields.io/badge/Flask-3.1-green.svg)](https://flask.palletsprojects.com)
-  [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+  [![License](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
 </div>
 
 ---
@@ -152,7 +152,9 @@ Contributions are welcome! Please read our contributing guidelines and submit pu
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0) - see the [LICENSE](LICENSE) file for details.
+
+This means if you modify TiKòb and run it as a service, you must make your source code available to users.
 
 ---
 
