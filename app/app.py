@@ -1686,11 +1686,14 @@ ALLOWED_AUDIO_EXTENSIONS = {'webm', 'mp3', 'wav', 'ogg', 'm4a'}
 def allowed_audio_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_AUDIO_EXTENSIONS
 
+MAX_AUDIO_SIZE = 5 * 1024 * 1024  # 5MB max
+MAX_AUDIO_DURATION = 120  # 2 minutes max
+
 @app.route('/api/audio/upload', methods=['POST'])
 @login_required
 @csrf.exempt
 def upload_audio():
-    """Upload audio message"""
+    """Upload audio message with security checks"""
     try:
         if 'audio' not in request.files:
             return jsonify({'error': 'No audio file'}), 400
@@ -1699,11 +1702,45 @@ def upload_audio():
         if audio_file.filename == '':
             return jsonify({'error': 'No selected file'}), 400
         
-        ext = audio_file.filename.rsplit('.', 1)[1].lower() if '.' in audio_file.filename else 'webm'
-        if ext not in ALLOWED_AUDIO_EXTENSIONS:
+        audio_file.seek(0, 2)
+        file_size = audio_file.tell()
+        audio_file.seek(0)
+        
+        if file_size > MAX_AUDIO_SIZE:
+            return jsonify({'error': 'Audio file too large (max 5MB)'}), 400
+        
+        content_type = (audio_file.content_type or '').lower().split(';')[0].strip()
+        
+        mime_to_ext = {
+            'audio/webm': 'webm',
+            'audio/mp3': 'mp3',
+            'audio/mpeg': 'mp3',
+            'audio/wav': 'wav',
+            'audio/wave': 'wav',
+            'audio/x-wav': 'wav',
+            'audio/ogg': 'ogg',
+            'audio/vorbis': 'ogg',
+            'audio/m4a': 'm4a',
+            'audio/mp4': 'm4a',
+            'audio/x-m4a': 'm4a',
+            'audio/aac': 'm4a',
+            'video/webm': 'webm',
+            'application/octet-stream': 'webm'
+        }
+        
+        ext = mime_to_ext.get(content_type)
+        
+        if not ext and content_type.startswith('audio/'):
             ext = 'webm'
         
-        filename = f"audio_{session.get('user_id')}_{int(time.time())}_{secrets.token_hex(4)}.{ext}"
+        if not ext:
+            return jsonify({'error': 'Invalid audio format. Supported: webm, mp3, wav, ogg, m4a'}), 400
+        
+        if ext not in ALLOWED_AUDIO_EXTENSIONS:
+            return jsonify({'error': 'Unsupported audio format'}), 400
+        
+        user_id = session.get('user_id')
+        filename = f"audio_{user_id}_{int(time.time())}_{secrets.token_hex(8)}.{ext}"
         filepath = os.path.join(AUDIO_UPLOAD_FOLDER, filename)
         audio_file.save(filepath)
         
@@ -1713,43 +1750,73 @@ def upload_audio():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/uploads/audio/<filename>')
+@login_required
 def serve_audio(filename):
-    """Serve uploaded audio files"""
-    return send_file(os.path.join('uploads/audio', filename))
+    """Serve uploaded audio files (authenticated)"""
+    from flask import send_from_directory
+    
+    safe_filename = secure_filename(filename)
+    if safe_filename != filename or not safe_filename:
+        return jsonify({'error': 'Invalid filename'}), 400
+    
+    ext = safe_filename.rsplit('.', 1)[-1].lower() if '.' in safe_filename else ''
+    if ext not in ALLOWED_AUDIO_EXTENSIONS:
+        return jsonify({'error': 'Invalid file type'}), 400
+    
+    audio_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads', 'audio')
+    filepath = os.path.join(audio_dir, safe_filename)
+    
+    if not os.path.exists(filepath):
+        return jsonify({'error': 'File not found'}), 404
+    
+    return send_from_directory(audio_dir, safe_filename)
 
 @socketio.on('send_audio_message')
 def on_send_audio_message(data):
-    """Handle audio message via WebSocket"""
+    """Handle audio message via WebSocket with membership verification"""
     user_id = session.get('user_id')
     group_id = data.get('group_id')
     audio_url = data.get('audio_url')
     duration = data.get('duration', 0)
     
-    if user_id and group_id and audio_url:
-        user = User.query.get(user_id)
-        member = Member.query.filter_by(user_id=user_id, group_id=group_id, is_active=True).first()
-        
-        if member:
-            message = GroupMessage(
-                group_id=group_id,
-                user_id=user_id,
-                content='[Voice Message]',
-                message_type='audio',
-                audio_url=audio_url,
-                audio_duration=duration
-            )
-            db.session.add(message)
-            db.session.commit()
-            
-            emit('new_audio_message', {
-                'group_id': group_id,
-                'message_id': message.id,
-                'username': user.username,
-                'audio_url': audio_url,
-                'duration': duration,
-                'is_storyteller': member.is_storyteller,
-                'created_at': message.created_at.isoformat()
-            }, room=f'group_{group_id}')
+    if not user_id or not group_id or not audio_url:
+        return
+    
+    if not isinstance(group_id, int) or not isinstance(audio_url, str):
+        return
+    
+    if not audio_url.startswith('/uploads/audio/'):
+        return
+    
+    if duration and (not isinstance(duration, (int, float)) or duration > MAX_AUDIO_DURATION):
+        duration = min(duration, MAX_AUDIO_DURATION) if isinstance(duration, (int, float)) else 0
+    
+    user = User.query.get(user_id)
+    member = Member.query.filter_by(user_id=user_id, group_id=group_id, is_active=True).first()
+    
+    if not member or not user:
+        return
+    
+    message = GroupMessage(
+        group_id=group_id,
+        user_id=user_id,
+        content='[Voice Message]',
+        message_type='audio',
+        audio_url=audio_url,
+        audio_duration=duration
+    )
+    db.session.add(message)
+    db.session.commit()
+    
+    emit('new_audio_message', {
+        'group_id': group_id,
+        'message_id': message.id,
+        'username': user.username,
+        'audio_url': audio_url,
+        'duration': duration,
+        'is_storyteller': member.is_storyteller,
+        'created_at': message.created_at.isoformat()
+    }, room=f'group_{group_id}')
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)

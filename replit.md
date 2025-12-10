@@ -45,4 +45,5 @@ TiKòb is built with Python 3.11 and Flask 3.1.2, using SQLite with Flask-SQLAlc
 - **Replit Secrets**: For sensitive environment variables (`SESSION_SECRET`).
 - **SendGrid**: For email notifications (planned).
 - **Exchange Rate API**: For multi-currency support (currently uses mock data).
-- **Bank Linking**: Plaid integration exists but is optional. **Recommended alternative: Teller** (teller.io) - simpler API, modern approach, competitive pricing for US bank coverage. Other options: Finexer (90% cheaper, UK/EU), TrueLayer (EU).
+- **Bank Linking**: Teller API integration for US bank account linking. Uses Teller Connect SDK for secure bank connections. TellerAccount model stores enrollment metadata. Routes: /bank-linking, /api/teller/*. Alternative options: Finexer (90% cheaper, UK/EU), TrueLayer (EU).
+- **Audio Messaging**: Voice message support in group chats using MediaRecorder API. Features: record, preview, send audio messages. Security: MIME validation, file size limits (5MB), authenticated serving, membership verification. Stored in app/uploads/audio/.

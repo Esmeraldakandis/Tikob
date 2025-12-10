@@ -45,7 +45,15 @@
                                         <small class="text-muted ms-auto" style="font-size: 0.75rem;">{{ message.created_at.strftime('%I:%M %p') }}</small>
                                     </div>
                                     
-                                    {% if message.is_proverb %}
+                                    {% if message.message_type == 'audio' and message.audio_url %}
+                                    <div class="audio-message">
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <span>🎤</span>
+                                            <span class="folklore-body small">Voice Message{% if message.audio_duration %} ({{ message.audio_duration|int }}s){% endif %}</span>
+                                        </div>
+                                        <audio controls src="{{ message.audio_url }}" style="width: 100%; height: 36px;"></audio>
+                                    </div>
+                                    {% elif message.is_proverb %}
                                     <div class="proverb-text mt-2">
                                         {{ message.content }}
                                     </div>
@@ -103,7 +111,50 @@
                                placeholder="Explain the meaning..."
                                style="border: 2px solid var(--gold); border-radius: 8px; padding: 0.75rem;">
                     </div>
+                    
+                    <!-- Audio Recording -->
+                    <div class="mt-3 d-flex align-items-center gap-2">
+                        <button id="recordBtn" class="btn-folklore d-flex align-items-center gap-2" onclick="toggleRecording()">
+                            <span id="recordIcon">🎤</span>
+                            <span id="recordText">Voice Message</span>
+                        </button>
+                        <div id="recordingStatus" style="display: none;" class="d-flex align-items-center gap-2">
+                            <span class="recording-dot"></span>
+                            <span id="recordingTime" class="folklore-body">0:00</span>
+                        </div>
+                        <audio id="audioPreview" style="display: none;" controls></audio>
+                        <button id="sendAudioBtn" class="btn-folklore" style="display: none;" onclick="sendAudioMessage()">
+                            Send Audio
+                        </button>
+                        <button id="cancelAudioBtn" class="btn btn-outline-secondary btn-sm" style="display: none;" onclick="cancelRecording()">
+                            ✕
+                        </button>
+                    </div>
                 </div>
+                
+                <style>
+                    .recording-dot {
+                        width: 12px;
+                        height: 12px;
+                        background: #ff4444;
+                        border-radius: 50%;
+                        animation: pulse-recording 1s infinite;
+                    }
+                    @keyframes pulse-recording {
+                        0%, 100% { opacity: 1; transform: scale(1); }
+                        50% { opacity: 0.5; transform: scale(1.2); }
+                    }
+                    .audio-message {
+                        background: linear-gradient(135deg, rgba(255, 159, 28, 0.1), rgba(46, 196, 182, 0.1));
+                        border-radius: 12px;
+                        padding: 0.75rem;
+                        margin-top: 0.5rem;
+                    }
+                    .audio-message audio {
+                        width: 100%;
+                        height: 36px;
+                    }
+                </style>
             </div>
         </div>
 
@@ -244,6 +295,152 @@
             .then(data => {
                 document.querySelector('.proverb-text').textContent = data.proverb;
             });
+    }
+
+    // ============== AUDIO RECORDING ==============
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let recordingStartTime = null;
+    let recordingTimer = null;
+    let currentAudioBlob = null;
+
+    async function toggleRecording() {
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+            stopRecording();
+        } else {
+            await startRecording();
+        }
+    }
+
+    async function startRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) audioChunks.push(e.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                currentAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const audioUrl = URL.createObjectURL(currentAudioBlob);
+                document.getElementById('audioPreview').src = audioUrl;
+                document.getElementById('audioPreview').style.display = 'block';
+                document.getElementById('sendAudioBtn').style.display = 'inline-block';
+                document.getElementById('cancelAudioBtn').style.display = 'inline-block';
+                stream.getTracks().forEach(track => track.stop());
+            };
+
+            mediaRecorder.start();
+            recordingStartTime = Date.now();
+            
+            document.getElementById('recordIcon').textContent = '⏹️';
+            document.getElementById('recordText').textContent = 'Stop';
+            document.getElementById('recordBtn').style.background = 'linear-gradient(135deg, #ff4444, #cc0000)';
+            document.getElementById('recordingStatus').style.display = 'flex';
+            
+            recordingTimer = setInterval(updateRecordingTime, 1000);
+        } catch (err) {
+            console.error('Microphone access denied:', err);
+            alert('Please allow microphone access to send voice messages.');
+        }
+    }
+
+    function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+            clearInterval(recordingTimer);
+            
+            document.getElementById('recordIcon').textContent = '🎤';
+            document.getElementById('recordText').textContent = 'Voice Message';
+            document.getElementById('recordBtn').style.background = '';
+            document.getElementById('recordingStatus').style.display = 'none';
+        }
+    }
+
+    function updateRecordingTime() {
+        const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+        const mins = Math.floor(elapsed / 60);
+        const secs = elapsed % 60;
+        document.getElementById('recordingTime').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function cancelRecording() {
+        currentAudioBlob = null;
+        document.getElementById('audioPreview').style.display = 'none';
+        document.getElementById('sendAudioBtn').style.display = 'none';
+        document.getElementById('cancelAudioBtn').style.display = 'none';
+        document.getElementById('audioPreview').src = '';
+    }
+
+    async function sendAudioMessage() {
+        if (!currentAudioBlob) return;
+        
+        const formData = new FormData();
+        formData.append('audio', currentAudioBlob, 'voice_message.webm');
+        
+        try {
+            const response = await fetch('/api/audio/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                const duration = (Date.now() - recordingStartTime) / 1000;
+                socket.emit('send_audio_message', {
+                    group_id: groupId,
+                    audio_url: data.audio_url,
+                    duration: duration
+                });
+                cancelRecording();
+            } else {
+                alert('Failed to upload audio: ' + (data.error || 'Unknown error'));
+            }
+        } catch (err) {
+            console.error('Error uploading audio:', err);
+            alert('Error sending voice message. Please try again.');
+        }
+    }
+
+    // Handle incoming audio messages
+    socket.on('new_audio_message', function(data) {
+        if (data.group_id === groupId) {
+            appendAudioMessage(data);
+        }
+    });
+
+    function appendAudioMessage(data) {
+        const messagesDiv = document.getElementById('messages');
+        const duration = data.duration ? Math.round(data.duration) : 0;
+        const messageHtml = `
+            <div class="message-bubble ${data.is_storyteller ? 'storyteller' : ''} ink-flow">
+                <div class="d-flex align-items-start">
+                    <div class="flex-shrink-0 me-3">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--earth-gradient); display: flex; align-items: center; justify-content: center; color: var(--parchment); font-weight: bold; border: 2px solid var(--earth-brown);">
+                            ${data.username[0].toUpperCase()}
+                        </div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center mb-1">
+                            <strong class="folklore-subheading" style="font-size: 1rem;">${data.username}</strong>
+                            ${data.is_storyteller ? '<span class="ms-2" style="background: var(--gold); color: var(--ink); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">STORYTELLER</span>' : ''}
+                            <small class="text-muted ms-auto" style="font-size: 0.75rem;">${new Date().toLocaleTimeString()}</small>
+                        </div>
+                        <div class="audio-message">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span>🎤</span>
+                                <span class="folklore-body small">Voice Message (${duration}s)</span>
+                            </div>
+                            <audio controls src="${data.audio_url}" style="width: 100%; height: 36px;"></audio>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        messagesDiv.insertAdjacentHTML('beforeend', messageHtml);
+        document.getElementById('messageContainer').scrollTop = document.getElementById('messageContainer').scrollHeight;
     }
 </script>
 {% endblock %}
