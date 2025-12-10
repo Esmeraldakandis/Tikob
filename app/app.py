@@ -367,12 +367,14 @@ def impact_visualizer():
     if my_net_savings >= 10000:
         milestones_achieved.append('legend')
     
+    from models import UserXP
+    xp_profile = UserXP.query.filter_by(user_id=user.id).first()
     user_stats = {
         'total_contributed': float(my_contributions),
-        'streak': user.contribution_streak or 0,
-        'xp': user.xp or 0,
+        'streak': xp_profile.current_streak if xp_profile else 0,
+        'xp': xp_profile.total_xp if xp_profile else 0,
         'badges': UserBadge.query.filter_by(user_id=user.id).count(),
-        'reputation': user.reputation or 0
+        'reputation': 50
     }
     
     return render_template('impact_visualizer.html',
