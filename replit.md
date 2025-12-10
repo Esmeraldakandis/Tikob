@@ -36,6 +36,7 @@ TiKòb is built with Python 3.11 and Flask 3.1.2, using SQLite with Flask-SQLAlc
 - **Internationalization**: Language preferences stored in Flask sessions.
 - **Dynamic Content**: Context-aware financial advice engine and culturally themed UI customization.
 - **Advanced Badge Criteria**: Badges awarded based on total contributions, group count, streak, high contribution, loyalty, and reputation.
+- **Immersive Animation System** (immersive.css): CSS-only motion design with floating particles, parallax effects, depth shadows, interactive card tilts, spring physics animations, and orbiting profile badges. Includes comprehensive dark mode overrides for all components.
 
 ## External Dependencies
 - **Flask-SQLAlchemy**: ORM for database interaction (SQLite for development, Heroku PostgreSQL for production).
