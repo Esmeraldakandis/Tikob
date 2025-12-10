@@ -82,37 +82,49 @@
 /* ===== ACTION TILES - Quick Action Buttons ===== */
 .action-tile {
     padding: 1.25rem 1rem;
-    background: linear-gradient(145deg, rgba(255, 159, 28, 0.08) 0%, rgba(46, 196, 182, 0.05) 100%);
-    border: 1px solid rgba(255, 159, 28, 0.15);
+    background: linear-gradient(145deg, rgba(255, 159, 28, 0.15) 0%, rgba(46, 196, 182, 0.1) 100%);
+    background-color: #FFF8F0;
+    border: 2px solid rgba(255, 159, 28, 0.4);
     border-radius: 16px;
-    transition: all 0.3s var(--ease-smooth);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s var(--ease-smooth, cubic-bezier(0.4, 0, 0.2, 1));
     cursor: pointer;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .action-tile:hover {
-    background: linear-gradient(145deg, rgba(255, 159, 28, 0.15) 0%, rgba(46, 196, 182, 0.1) 100%);
-    border-color: var(--mango);
+    background: linear-gradient(145deg, rgba(255, 159, 28, 0.25) 0%, rgba(46, 196, 182, 0.2) 100%);
+    background-color: #FFE8CC;
+    border-color: #FF9F1C;
     transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(255, 159, 28, 0.2);
+    box-shadow: 0 8px 24px rgba(255, 159, 28, 0.3);
 }
 
 .action-tile-label {
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-weight: 600;
     font-size: 0.9rem;
-    color: var(--text-primary);
+    color: #2D3436;
+    color: var(--text-primary, #2D3436);
     display: block;
+    margin-top: 0.5rem;
 }
 
 [data-theme="dark"] .action-tile {
-    background: linear-gradient(145deg, rgba(255, 159, 28, 0.12) 0%, rgba(46, 196, 182, 0.08) 100%);
-    border-color: rgba(255, 159, 28, 0.25);
+    background: linear-gradient(145deg, rgba(255, 159, 28, 0.2) 0%, rgba(46, 196, 182, 0.12) 100%);
+    background-color: #2A2A42;
+    border-color: rgba(255, 159, 28, 0.4);
 }
 
 [data-theme="dark"] .action-tile:hover {
-    background: linear-gradient(145deg, rgba(255, 159, 28, 0.22) 0%, rgba(46, 196, 182, 0.15) 100%);
-    border-color: var(--mango);
-    box-shadow: 0 8px 24px rgba(255, 159, 28, 0.3);
+    background: linear-gradient(145deg, rgba(255, 159, 28, 0.3) 0%, rgba(46, 196, 182, 0.2) 100%);
+    background-color: #3A3A52;
+    border-color: #FF9F1C;
+    box-shadow: 0 8px 24px rgba(255, 159, 28, 0.35);
 }
 
 [data-theme="dark"] .action-tile-label {
