@@ -252,6 +252,25 @@ class PersonalTransaction(db.Model):
     user = db.relationship('User', backref='personal_transactions')
     plaid_account = db.relationship('PlaidAccount', backref='transactions')
 
+class TellerAccount(db.Model):
+    __tablename__ = 'teller_account'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    access_token = db.Column(db.String(255), nullable=False)
+    enrollment_id = db.Column(db.String(255), nullable=False)
+    account_id = db.Column(db.String(255))
+    account_name = db.Column(db.String(100))
+    account_type = db.Column(db.String(50))
+    account_subtype = db.Column(db.String(50))
+    institution_name = db.Column(db.String(100))
+    institution_id = db.Column(db.String(100))
+    last_four = db.Column(db.String(4))
+    is_active = db.Column(db.Boolean, default=True)
+    last_synced = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', backref='teller_accounts')
+
 class GroupMessage(db.Model):
     __tablename__ = 'group_message'
     id = db.Column(db.Integer, primary_key=True)
@@ -259,6 +278,8 @@ class GroupMessage(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     content = db.Column(db.Text, nullable=False)
     message_type = db.Column(db.String(20), default='text')
+    audio_url = db.Column(db.String(500))
+    audio_duration = db.Column(db.Float)
     is_proverb = db.Column(db.Boolean, default=False)
     proverb_context = db.Column(db.Text)
     parent_message_id = db.Column(db.Integer, db.ForeignKey('group_message.id'))

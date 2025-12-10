@@ -5,7 +5,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_talisman import Talisman
 from flask_socketio import SocketIO, emit, join_room, leave_room
-from models import db, User, Group, Member, Transaction, Badge, UserBadge, GroupMessage, MessageReaction
+from models import db, User, Group, Member, Transaction, Badge, UserBadge, GroupMessage, MessageReaction, TellerAccount
 from werkzeug.utils import secure_filename
 from utils import convert_currency, get_random_quote, check_and_award_badges, generate_group_report_csv, get_financial_advice, seed_initial_data, cleanup_old_receipts
 from notifications import send_contribution_notification, send_approval_notification, send_badge_notification, send_payout_notification
@@ -1586,6 +1586,170 @@ def utility_processor():
         'get_community_phrase': get_community_phrase,
         'get_tradition_theme_colors': get_tradition_theme_colors
     }
+
+# ============== TELLER BANK LINKING ==============
+TELLER_APP_ID = os.environ.get('TELLER_APP_ID')
+TELLER_ENVIRONMENT = os.environ.get('TELLER_ENVIRONMENT', 'sandbox')
+AUDIO_UPLOAD_FOLDER = 'app/uploads/audio'
+os.makedirs(AUDIO_UPLOAD_FOLDER, exist_ok=True)
+
+@app.route('/bank-linking')
+@login_required
+def bank_linking():
+    """Bank account linking page with Teller Connect"""
+    user_id = session.get('user_id')
+    linked_accounts = TellerAccount.query.filter_by(user_id=user_id, is_active=True).all()
+    language = session.get('language', 'en')
+    proverb = get_random_proverb(language)
+    return render_template('bank_linking.html', 
+                          teller_app_id=TELLER_APP_ID,
+                          teller_environment=TELLER_ENVIRONMENT,
+                          linked_accounts=linked_accounts,
+                          language=language,
+                          proverb=proverb)
+
+@app.route('/api/teller/save-enrollment', methods=['POST'])
+@login_required
+@csrf.exempt
+def save_teller_enrollment():
+    """Save Teller enrollment after successful bank connection"""
+    try:
+        data = request.get_json()
+        user_id = session.get('user_id')
+        
+        access_token = data.get('accessToken')
+        enrollment = data.get('enrollment', {})
+        
+        if not access_token or not enrollment:
+            return jsonify({'error': 'Missing enrollment data'}), 400
+        
+        existing = TellerAccount.query.filter_by(
+            user_id=user_id, 
+            enrollment_id=enrollment.get('id')
+        ).first()
+        
+        if existing:
+            existing.access_token = access_token
+            existing.last_synced = datetime.utcnow()
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Account updated'})
+        
+        new_account = TellerAccount(
+            user_id=user_id,
+            access_token=access_token,
+            enrollment_id=enrollment.get('id'),
+            institution_name=enrollment.get('institution', {}).get('name'),
+            institution_id=enrollment.get('institution', {}).get('id'),
+            last_synced=datetime.utcnow()
+        )
+        db.session.add(new_account)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Bank account linked successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/teller/accounts')
+@login_required
+def get_teller_accounts():
+    """Get user's linked Teller accounts"""
+    user_id = session.get('user_id')
+    accounts = TellerAccount.query.filter_by(user_id=user_id, is_active=True).all()
+    return jsonify({
+        'accounts': [{
+            'id': acc.id,
+            'institution_name': acc.institution_name,
+            'account_name': acc.account_name or 'Primary Account',
+            'account_type': acc.account_type or 'checking',
+            'last_four': acc.last_four,
+            'last_synced': acc.last_synced.isoformat() if acc.last_synced else None
+        } for acc in accounts]
+    })
+
+@app.route('/api/teller/disconnect/<int:account_id>', methods=['POST'])
+@login_required
+@csrf.exempt
+def disconnect_teller_account(account_id):
+    """Disconnect a linked bank account"""
+    user_id = session.get('user_id')
+    account = TellerAccount.query.filter_by(id=account_id, user_id=user_id).first()
+    if account:
+        account.is_active = False
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Account disconnected'})
+    return jsonify({'error': 'Account not found'}), 404
+
+# ============== AUDIO MESSAGING ==============
+ALLOWED_AUDIO_EXTENSIONS = {'webm', 'mp3', 'wav', 'ogg', 'm4a'}
+
+def allowed_audio_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_AUDIO_EXTENSIONS
+
+@app.route('/api/audio/upload', methods=['POST'])
+@login_required
+@csrf.exempt
+def upload_audio():
+    """Upload audio message"""
+    try:
+        if 'audio' not in request.files:
+            return jsonify({'error': 'No audio file'}), 400
+        
+        audio_file = request.files['audio']
+        if audio_file.filename == '':
+            return jsonify({'error': 'No selected file'}), 400
+        
+        ext = audio_file.filename.rsplit('.', 1)[1].lower() if '.' in audio_file.filename else 'webm'
+        if ext not in ALLOWED_AUDIO_EXTENSIONS:
+            ext = 'webm'
+        
+        filename = f"audio_{session.get('user_id')}_{int(time.time())}_{secrets.token_hex(4)}.{ext}"
+        filepath = os.path.join(AUDIO_UPLOAD_FOLDER, filename)
+        audio_file.save(filepath)
+        
+        audio_url = url_for('serve_audio', filename=filename, _external=False)
+        return jsonify({'success': True, 'audio_url': audio_url, 'filename': filename})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/uploads/audio/<filename>')
+def serve_audio(filename):
+    """Serve uploaded audio files"""
+    return send_file(os.path.join('uploads/audio', filename))
+
+@socketio.on('send_audio_message')
+def on_send_audio_message(data):
+    """Handle audio message via WebSocket"""
+    user_id = session.get('user_id')
+    group_id = data.get('group_id')
+    audio_url = data.get('audio_url')
+    duration = data.get('duration', 0)
+    
+    if user_id and group_id and audio_url:
+        user = User.query.get(user_id)
+        member = Member.query.filter_by(user_id=user_id, group_id=group_id, is_active=True).first()
+        
+        if member:
+            message = GroupMessage(
+                group_id=group_id,
+                user_id=user_id,
+                content='[Voice Message]',
+                message_type='audio',
+                audio_url=audio_url,
+                audio_duration=duration
+            )
+            db.session.add(message)
+            db.session.commit()
+            
+            emit('new_audio_message', {
+                'group_id': group_id,
+                'message_id': message.id,
+                'username': user.username,
+                'audio_url': audio_url,
+                'duration': duration,
+                'is_storyteller': member.is_storyteller,
+                'created_at': message.created_at.isoformat()
+            }, room=f'group_{group_id}')
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
