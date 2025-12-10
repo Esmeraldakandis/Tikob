@@ -480,16 +480,22 @@
 
 /* Staggered bounce animation */
 .stagger-bounce > * {
-    opacity: 0;
-    animation: bounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    opacity: 1;
 }
 
-.stagger-bounce > *:nth-child(1) { animation-delay: 0.05s; }
-.stagger-bounce > *:nth-child(2) { animation-delay: 0.1s; }
-.stagger-bounce > *:nth-child(3) { animation-delay: 0.15s; }
-.stagger-bounce > *:nth-child(4) { animation-delay: 0.2s; }
-.stagger-bounce > *:nth-child(5) { animation-delay: 0.25s; }
-.stagger-bounce > *:nth-child(6) { animation-delay: 0.3s; }
+@media (prefers-reduced-motion: no-preference) {
+    .stagger-bounce > * {
+        opacity: 0;
+        animation: bounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    
+    .stagger-bounce > *:nth-child(1) { animation-delay: 0.05s; }
+    .stagger-bounce > *:nth-child(2) { animation-delay: 0.1s; }
+    .stagger-bounce > *:nth-child(3) { animation-delay: 0.15s; }
+    .stagger-bounce > *:nth-child(4) { animation-delay: 0.2s; }
+    .stagger-bounce > *:nth-child(5) { animation-delay: 0.25s; }
+    .stagger-bounce > *:nth-child(6) { animation-delay: 0.3s; }
+}
 
 /* ===== PROFILE SIDEBAR ===== */
 .profile-sidebar {

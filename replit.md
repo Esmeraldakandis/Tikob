@@ -45,4 +45,4 @@ TiKòb is built with Python 3.11 and Flask 3.1.2, using SQLite with Flask-SQLAlc
 - **Replit Secrets**: For sensitive environment variables (`SESSION_SECRET`).
 - **SendGrid**: For email notifications (planned).
 - **Exchange Rate API**: For multi-currency support (currently uses mock data).
-- **Plaid**: For bank account linking and personal money management (`PLAID_CLIENT_ID`, `PLAID_SECRET`).
+- **Bank Linking**: Plaid integration exists but is optional. **Recommended alternative: Teller** (teller.io) - simpler API, modern approach, competitive pricing for US bank coverage. Other options: Finexer (90% cheaper, UK/EU), TrueLayer (EU).
