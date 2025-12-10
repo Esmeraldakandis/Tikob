@@ -275,21 +275,23 @@ def impact_visualizer():
     user = db.session.get(User, session['user_id'])
     language = session.get('language', 'en')
     
-    user_group_ids = [m.group_id for m in Member.query.filter_by(user_id=user.id, is_active=True).all()]
+    user_memberships = Member.query.filter_by(user_id=user.id, is_active=True).all()
+    user_group_ids = [m.group_id for m in user_memberships]
+    user_member_ids = [m.id for m in user_memberships]
     
     my_contributions = db.session.query(
         func.coalesce(func.sum(Transaction.amount), 0)
     ).filter(
-        Transaction.user_id == user.id,
+        Transaction.member_id.in_(user_member_ids),
         Transaction.transaction_type == 'contribution'
-    ).scalar() or 0
+    ).scalar() or 0 if user_member_ids else 0
     
     my_payouts = db.session.query(
         func.coalesce(func.sum(Transaction.amount), 0)
     ).filter(
-        Transaction.user_id == user.id,
+        Transaction.member_id.in_(user_member_ids),
         Transaction.transaction_type == 'payout'
-    ).scalar() or 0
+    ).scalar() or 0 if user_member_ids else 0
     
     my_net_savings = float(my_contributions) - float(my_payouts)
     
@@ -331,7 +333,7 @@ def impact_visualizer():
     recent_transactions = Transaction.query.filter(
         Transaction.group_id.in_(user_group_ids)
     ).order_by(
-        Transaction.timestamp.desc()
+        Transaction.transaction_date.desc()
     ).limit(10).all() if user_group_ids else []
     
     recent_activities = []
@@ -346,7 +348,7 @@ def impact_visualizer():
             activity_type = 'contribution'
             desc = f"${tx.amount:.2f} transaction"
         
-        time_str = tx.timestamp.strftime('%b %d, %H:%M') if tx.timestamp else 'Recently'
+        time_str = tx.transaction_date.strftime('%b %d, %H:%M') if tx.transaction_date else 'Recently'
         recent_activities.append({
             'type': activity_type,
             'description': desc,
