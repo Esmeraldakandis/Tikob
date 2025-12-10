@@ -3,9 +3,16 @@
 {% block title %}Login - TiKòb{% endblock %}
 
 {% block content %}
+<!-- Dark Mode Toggle for Login -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1000;">
+    <button class="btn-konbit btn-konbit-secondary" id="loginDarkToggle" title="Toggle theme" style="padding: 0.5rem 0.75rem;">
+        <span class="dark-mode-icon">🌙</span>
+    </button>
+</div>
+
 <div class="row justify-content-center align-items-center" style="min-height: 80vh;">
     <div class="col-md-6 col-lg-5 col-xl-4">
-        <div class="lakou-card animate-in" style="padding: 2.5rem;">
+        <div class="immersive-card depth-shadow animate-in" style="padding: 2.5rem;">
             <!-- Logo & Welcome -->
             <div class="text-center mb-4">
                 <!-- Beautiful Haitian Coat of Arms -->
@@ -201,6 +208,33 @@
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('loginForm');
     const emblem = document.getElementById('haitiEmblem');
+    
+    // Login page dark mode toggle
+    const loginToggle = document.getElementById('loginDarkToggle');
+    const loginIcon = loginToggle ? loginToggle.querySelector('.dark-mode-icon') : null;
+    const htmlEl = document.documentElement;
+    
+    // Initialize from localStorage
+    const savedMode = localStorage.getItem('darkMode') || 'light';
+    if (savedMode === 'dark') {
+        htmlEl.setAttribute('data-theme', 'dark');
+        if (loginIcon) loginIcon.textContent = '☀️';
+    }
+    
+    if (loginToggle) {
+        loginToggle.addEventListener('click', () => {
+            const isDark = htmlEl.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                htmlEl.setAttribute('data-theme', 'light');
+                localStorage.setItem('darkMode', 'light');
+                if (loginIcon) loginIcon.textContent = '🌙';
+            } else {
+                htmlEl.setAttribute('data-theme', 'dark');
+                localStorage.setItem('darkMode', 'dark');
+                if (loginIcon) loginIcon.textContent = '☀️';
+            }
+        });
+    }
     
     // Check for success message (login success indicator)
     {% if login_success %}

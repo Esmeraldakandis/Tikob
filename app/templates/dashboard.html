@@ -5,7 +5,7 @@
 {% block content %}
 
 <!-- Welcome Hero with Haitian Proverb -->
-<div class="hero-lakou mb-4 animate-in" data-aos="fade-down">
+<div class="hero-lakou depth-shadow mb-4 animate-in" data-aos="fade-down">
     <div class="row align-items-center">
         <div class="col-lg-8">
             <h1 class="hero-title mb-2">
@@ -19,8 +19,18 @@
             </div>
         </div>
         <div class="col-lg-4 text-center d-none d-lg-block">
-            <div class="animate-float">
-                <img src="{{ url_for('static', filename='images/haiti-emblem.svg') }}" alt="TiKòb" style="width: 120px; height: 120px; filter: drop-shadow(0 4px 12px rgba(255, 159, 28, 0.3));">
+            <!-- Profile Avatar with Orbiting Badges -->
+            <div class="profile-avatar-container" style="width: 140px; height: 140px;">
+                <div class="profile-avatar" style="width: 80px; height: 80px; font-size: 1.75rem;">
+                    {{ session.username[:2]|upper }}
+                </div>
+                <div class="profile-orbit" style="width: 130px; height: 130px; margin-left: -65px; margin-top: -65px;">
+                    <div class="profile-orbit-badge">🏅</div>
+                    <div class="profile-orbit-badge">💰</div>
+                    <div class="profile-orbit-badge">🌟</div>
+                    <div class="profile-orbit-badge">🤝</div>
+                </div>
+                <div class="profile-flag" style="right: 30px; bottom: 10px;">🇭🇹</div>
             </div>
         </div>
     </div>
@@ -45,38 +55,38 @@
 {% endif %}
 
 <!-- Quick Actions - Konbit Style -->
-<div class="lakou-card mb-4" data-aos="fade-up" data-aos-delay="100">
+<div class="immersive-card depth-shadow mb-4" data-aos="fade-up" data-aos-delay="100">
     <h5 class="lakou-heading mb-3 d-flex align-items-center gap-2">
         <span>⚡</span> {% if language == 'ht' %}Aksyon Rapid{% else %}Quick Actions{% endif %}
     </h5>
-    <div class="row g-3 stagger-in">
+    <div class="row g-3 stagger-bounce">
         <div class="col-md-3 col-6">
-            <a href="{{ url_for('create_group') }}" class="lakou-card h-100 text-decoration-none text-center interactive-tap">
-                <div style="font-size: 2.5rem;" class="mb-2">➕</div>
+            <a href="{{ url_for('create_group') }}" class="immersive-card h-100 text-decoration-none text-center spring-hover spring-press">
+                <div style="font-size: 2.5rem;" class="mb-2 badge-bubble-shimmer">➕</div>
                 <span class="lakou-body d-block">{% if language == 'ht' %}Kreye Gwoup{% else %}Create Group{% endif %}</span>
             </a>
         </div>
         <div class="col-md-3 col-6">
-            <a href="{{ url_for('join_group') }}" class="lakou-card h-100 text-decoration-none text-center interactive-tap">
-                <div style="font-size: 2.5rem;" class="mb-2">🤝</div>
+            <a href="{{ url_for('join_group') }}" class="immersive-card h-100 text-decoration-none text-center spring-hover spring-press">
+                <div style="font-size: 2.5rem;" class="mb-2 badge-bubble-shimmer">🤝</div>
                 <span class="lakou-body d-block">{% if language == 'ht' %}Jwenn Gwoup{% else %}Join Group{% endif %}</span>
             </a>
         </div>
         <div class="col-md-3 col-6">
-            <a href="{{ url_for('leaderboard') }}" class="lakou-card h-100 text-decoration-none text-center interactive-tap">
-                <div style="font-size: 2.5rem;" class="mb-2">🏆</div>
+            <a href="{{ url_for('leaderboard') }}" class="immersive-card h-100 text-decoration-none text-center spring-hover spring-press">
+                <div style="font-size: 2.5rem;" class="mb-2 badge-bubble-shimmer">🏆</div>
                 <span class="lakou-body d-block">{% if language == 'ht' %}Lidè yo{% else %}Leaderboard{% endif %}</span>
             </a>
         </div>
         <div class="col-md-3 col-6">
-            <a href="{{ url_for('my_badges') }}" class="lakou-card h-100 text-decoration-none text-center interactive-tap">
-                <div style="font-size: 2.5rem;" class="mb-2">🏅</div>
+            <a href="{{ url_for('my_badges') }}" class="immersive-card h-100 text-decoration-none text-center spring-hover spring-press">
+                <div style="font-size: 2.5rem;" class="mb-2 badge-bubble-shimmer">🏅</div>
                 <span class="lakou-body d-block">{% if language == 'ht' %}Badj Mwen{% else %}My Badges{% endif %}</span>
             </a>
         </div>
         <div class="col-md-3 col-6">
-            <a href="{{ url_for('impact_visualizer') }}" class="lakou-card h-100 text-decoration-none text-center interactive-tap">
-                <div style="font-size: 2.5rem;" class="mb-2">📊</div>
+            <a href="{{ url_for('impact_visualizer') }}" class="immersive-card h-100 text-decoration-none text-center spring-hover spring-press">
+                <div style="font-size: 2.5rem;" class="mb-2 badge-bubble-shimmer">📊</div>
                 <span class="lakou-body d-block">{% if language == 'ht' %}Enpak{% else %}Impact{% endif %}</span>
             </a>
         </div>
@@ -85,9 +95,9 @@
 
 <!-- Stats Overview -->
 {% if advice %}
-<div class="row mb-4 stagger-in" data-aos="fade-up" data-aos-delay="200">
+<div class="row mb-4 stagger-bounce" data-aos="fade-up" data-aos-delay="200">
     <div class="col-md-4 mb-3">
-        <div class="lakou-card text-center h-100">
+        <div class="immersive-card depth-shadow text-center h-100 spring-hover">
             <div class="stat-circle mx-auto mb-3">
                 <span class="stat-value">${{ "%.0f"|format(advice.total_saved) }}</span>
             </div>
@@ -97,7 +107,7 @@
         </div>
     </div>
     <div class="col-md-4 mb-3">
-        <div class="lakou-card text-center h-100">
+        <div class="immersive-card depth-shadow text-center h-100 spring-hover">
             <div class="stat-circle mx-auto mb-3">
                 <span class="stat-value">{{ advice.groups_count }}</span>
             </div>
@@ -107,7 +117,7 @@
         </div>
     </div>
     <div class="col-md-4 mb-3">
-        <div class="lakou-card text-center h-100">
+        <div class="immersive-card depth-shadow text-center h-100 spring-hover">
             <div class="stat-circle mx-auto mb-3 animate-pulse-warm">
                 <span class="stat-value">{{ "%.0f"|format(advice.next_goal.progress) }}%</span>
             </div>
@@ -139,10 +149,10 @@
 <div class="row">
     <div class="col-12">        
         {% if groups_data %}
-            <div class="row stagger-in">
+            <div class="row stagger-bounce">
                 {% for data in groups_data %}
                 <div class="col-md-6 col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 50 }}">
-                    <div class="lakou-card lakou-card-featured h-100">
+                    <div class="immersive-card depth-shadow h-100 spring-hover">
                         <!-- Group Header -->
                         <div class="text-center pb-3 mb-3" style="border-bottom: 2px solid rgba(255, 159, 28, 0.2);">
                             <div style="font-size: 3rem;" class="mb-2 animate-float">
@@ -219,7 +229,7 @@
             </div>
         {% else %}
             <!-- Empty State -->
-            <div class="lakou-card text-center" data-aos="fade-up">
+            <div class="immersive-card depth-shadow text-center" data-aos="fade-up">
                 <div class="py-5">
                     <div style="font-size: 5rem;" class="mb-4 animate-float">🌱</div>
                     <h3 class="lakou-heading mb-3">

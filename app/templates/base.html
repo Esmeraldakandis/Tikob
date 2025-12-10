@@ -19,9 +19,13 @@
     <!-- Custom Styles - Lakou Cultural Experience -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/lakou.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/immersive.css') }}">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="animated-gradient-bg">
+    <!-- Floating Particles Background -->
+    <div class="particles-container" id="particles"></div>
+    
     {% if session.user_id %}
     <nav class="nav-lakou navbar navbar-expand-lg">
         <div class="container">
@@ -196,6 +200,48 @@
                     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             });
+        });
+        
+        // Floating Particles System
+        function createParticles() {
+            const container = document.getElementById('particles');
+            if (!container) return;
+            
+            const colors = ['particle-gold', 'particle-ocean', 'particle-warm'];
+            const particleCount = 15;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = `particle ${colors[Math.floor(Math.random() * colors.length)]}`;
+                
+                const size = Math.random() * 60 + 20;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.animationDuration = `${Math.random() * 20 + 15}s`;
+                particle.style.animationDelay = `${Math.random() * 10}s`;
+                
+                container.appendChild(particle);
+            }
+        }
+        
+        // Interactive Card Mouse Tracking
+        function initInteractiveCards() {
+            document.querySelectorAll('.immersive-card').forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = ((e.clientX - rect.left) / rect.width) * 100;
+                    const y = ((e.clientY - rect.top) / rect.height) * 100;
+                    card.style.setProperty('--mouse-x', `${x}%`);
+                    card.style.setProperty('--mouse-y', `${y}%`);
+                });
+            });
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            initInteractiveCards();
         });
     </script>
     
