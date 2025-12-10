@@ -1,0 +1,44 @@
+# Susu App UI/UX Animation Instructions
+
+1. Use immersive, 3D or layered motion design — NOT flat 2D transitions.
+   - Implement parallax scrolling, depth layering, and orbiting elements.
+   - Avoid generic fade-ins or slide-ins.
+
+2. Sidebar Profile Design:
+   - Circular avatar bubble with soft glow.
+   - Floating bubbles for badges, flags, and age.
+   - Animated badges (pulse, shimmer, orbit).
+   - Flag bubble should animate (wave effect).
+   - Contribution counter ribbon with live ticker animation.
+
+3. Chat Portal:
+   - Threads = “Cycles” with animated transitions between states (Start, Midpoint, Harvest).
+   - Voice notes appear as floating constellations (animated stars).
+   - Reactions use custom emojis with motion (bounce, ripple).
+   - AI emoji forge: generate and render custom icons dynamically.
+
+4. Motion Principles:
+   - All elements should feel fluid and ritualized (like spaace.io).
+   - Use easing curves (ease-in-out, spring physics).
+   - Bubbles orbit or drift slightly, simulating constellations.
+   - Background gradients animate subtly (waves, palm leaves, stars).
+
+5. Current Events Tab:
+   - Animated cards that slide in with depth.
+   - Geo-aware updates with flag icons and cultural overlays.
+   - Action cards trigger animated group rituals (round-ups, donations).
+
+6. Dynamic Logo Theming:
+   - Haitian coat of arms as base logo.
+   - Auto-overlay seasonal/holiday themes (lights for Christmas, lanterns for Lunar New Year).
+   - Animated transitions between themes (fade, ripple).
+
+7. Compliance & Savings Logic:
+   - Group type picker adjusts rules automatically (Sol, Esusu, Njangi, Partner, etc.).
+   - Each type has its own animated suite (different badge styles, payout animations).
+   - International tax logic displayed with animated infographics.
+
+8. General UX Standards:
+   - Prioritize immersive storytelling over static UI.
+   - Every transition should feel metaphorical (cycles, harvests, constellations).
+   - Respect Lackou aesthetic: fluid, poetic, culturally rich, emotionally intelligent.
