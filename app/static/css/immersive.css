@@ -82,53 +82,49 @@
 /* ===== ACTION TILES - Quick Action Buttons ===== */
 .action-tile {
     padding: 1.25rem 1rem;
-    background: linear-gradient(145deg, rgba(255, 159, 28, 0.15) 0%, rgba(46, 196, 182, 0.1) 100%);
-    background-color: #FFF8F0;
-    border: 2px solid rgba(255, 159, 28, 0.4);
+    background: #FFFAF5 !important;
+    border: 2px solid #FF9F1C !important;
     border-radius: 16px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    transition: all 0.3s var(--ease-smooth, cubic-bezier(0.4, 0, 0.2, 1));
+    transition: all 0.3s ease;
     cursor: pointer;
-    min-height: 100px;
-    display: flex;
+    min-height: 110px;
+    display: flex !important;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 4px 12px rgba(255, 159, 28, 0.15);
 }
 
 .action-tile:hover {
-    background: linear-gradient(145deg, rgba(255, 159, 28, 0.25) 0%, rgba(46, 196, 182, 0.2) 100%);
-    background-color: #FFE8CC;
-    border-color: #FF9F1C;
+    background: #FFE8CC !important;
+    border-color: #E8900A !important;
     transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(255, 159, 28, 0.3);
+    box-shadow: 0 8px 24px rgba(255, 159, 28, 0.35);
 }
 
 .action-tile-label {
     font-family: 'Inter', -apple-system, sans-serif;
     font-weight: 600;
     font-size: 0.9rem;
-    color: #2D3436;
-    color: var(--text-primary, #2D3436);
+    color: #2D3436 !important;
     display: block;
     margin-top: 0.5rem;
 }
 
 [data-theme="dark"] .action-tile {
-    background: linear-gradient(145deg, rgba(255, 159, 28, 0.2) 0%, rgba(46, 196, 182, 0.12) 100%);
-    background-color: #2A2A42;
-    border-color: rgba(255, 159, 28, 0.4);
+    background: #3D3D5C !important;
+    border: 2px solid #FF9F1C !important;
+    box-shadow: 0 4px 12px rgba(255, 159, 28, 0.25);
 }
 
 [data-theme="dark"] .action-tile:hover {
-    background: linear-gradient(145deg, rgba(255, 159, 28, 0.3) 0%, rgba(46, 196, 182, 0.2) 100%);
-    background-color: #3A3A52;
-    border-color: #FF9F1C;
-    box-shadow: 0 8px 24px rgba(255, 159, 28, 0.35);
+    background: #4D4D6C !important;
+    border-color: #FFB347 !important;
+    box-shadow: 0 8px 24px rgba(255, 159, 28, 0.4);
 }
 
 [data-theme="dark"] .action-tile-label {
-    color: #FAF3E0;
+    color: #FAF3E0 !important;
 }
 
 [data-theme="dark"] .stat-circle {
