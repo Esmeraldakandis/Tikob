@@ -60,19 +60,18 @@
 }
 
 /* ===== SOULFUL TYPOGRAPHY ===== */
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Source+Sans+3:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap');
-
 body {
-    font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     color: var(--text-primary);
     background: var(--surface-warm);
-    line-height: 1.6;
+    line-height: 1.7;
     overflow-x: hidden;
+    font-weight: 400;
 }
 
 .lakou-title {
-    font-family: 'DM Serif Display', Georgia, serif;
-    font-weight: 400;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 700;
     color: var(--mahogany);
     letter-spacing: -0.02em;
     line-height: 1.2;
@@ -83,7 +82,7 @@ body {
 }
 
 .lakou-heading {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'Playfair Display', Georgia, serif;
     font-weight: 600;
     color: var(--sea-blue);
 }
@@ -93,49 +92,62 @@ body {
 }
 
 .lakou-body {
-    font-family: 'Source Sans 3', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 400;
-    font-size: 1.05rem;
+    font-size: 1rem;
 }
 
 /* ===== HAITIAN PROVERB DISPLAY ===== */
 .pwovèb {
     position: relative;
     padding: 1.5rem 2rem;
-    background: linear-gradient(135deg, rgba(255, 159, 28, 0.08) 0%, rgba(230, 57, 70, 0.05) 100%);
+    background: linear-gradient(135deg, rgba(255, 159, 28, 0.1) 0%, rgba(230, 57, 70, 0.05) 100%);
     border-left: 4px solid var(--mango);
-    border-radius: 0 12px 12px 0;
+    border-radius: 0 16px 16px 0;
     margin: 1.5rem 0;
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'Crimson Pro', Georgia, serif;
     font-style: italic;
-    font-size: 1.15rem;
+    font-size: 1.25rem;
+    font-weight: 500;
     color: var(--mahogany);
+    line-height: 1.5;
 }
 
 [data-theme="dark"] .pwovèb {
-    background: linear-gradient(135deg, rgba(255, 159, 28, 0.12) 0%, rgba(230, 57, 70, 0.08) 100%);
-    color: var(--coconut);
+    background: linear-gradient(135deg, rgba(255, 159, 28, 0.2) 0%, rgba(230, 57, 70, 0.12) 100%);
+    color: #FFE4C4;
+    border-left-color: var(--sunset-gold);
 }
 
 .pwovèb::before {
     content: '❝';
     position: absolute;
-    top: -10px;
-    left: 10px;
+    top: -8px;
+    left: 12px;
     font-size: 2.5rem;
     color: var(--mango);
-    opacity: 0.4;
+    opacity: 0.5;
     font-style: normal;
+}
+
+[data-theme="dark"] .pwovèb::before {
+    color: var(--sunset-gold);
+    opacity: 0.7;
 }
 
 .pwovèb-meaning {
     display: block;
     margin-top: 0.75rem;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-style: normal;
+    font-weight: 400;
     color: var(--text-secondary);
     padding-left: 1rem;
     border-left: 2px solid var(--caribbean);
+}
+
+[data-theme="dark"] .pwovèb-meaning {
+    color: #B8C7D8;
 }
 
 /* ===== LAKOU CARDS - Community Gathering Spaces ===== */
@@ -183,7 +195,7 @@ body {
 
 /* ===== KONBIT BUTTONS - Community Action ===== */
 .btn-konbit {
-    font-family: 'Source Sans 3', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 600;
     padding: 0.875rem 1.75rem;
     border-radius: 10px;
@@ -261,7 +273,7 @@ body {
 }
 
 .nav-lakou .navbar-brand {
-    font-family: 'DM Serif Display', serif;
+    font-family: 'Playfair Display', serif;
     font-size: 1.5rem;
     color: var(--mahogany) !important;
     display: flex;
@@ -358,7 +370,7 @@ body {
 }
 
 .story-intro h2 {
-    font-family: 'DM Serif Display', serif;
+    font-family: 'Playfair Display', serif;
     font-size: 2.25rem;
     color: var(--mahogany);
     margin-bottom: 1rem;
@@ -409,7 +421,7 @@ body {
 }
 
 .stat-value {
-    font-family: 'Fraunces', serif;
+    font-family: 'Playfair Display', serif;
     font-size: 2rem;
     font-weight: 700;
     color: var(--sea-blue);
@@ -680,7 +692,7 @@ body {
 }
 
 .hero-title {
-    font-family: 'DM Serif Display', serif;
+    font-family: 'Playfair Display', serif;
     font-size: clamp(2rem, 5vw, 3.5rem);
     color: var(--mahogany);
     margin-bottom: 1rem;
@@ -781,7 +793,7 @@ body {
 }
 
 .modal-lakou .modal-title {
-    font-family: 'DM Serif Display', serif;
+    font-family: 'Playfair Display', serif;
     font-size: 1.35rem;
 }
 

@@ -79,6 +79,46 @@
     color: var(--text-light);
 }
 
+/* ===== ACTION TILES - Quick Action Buttons ===== */
+.action-tile {
+    padding: 1.25rem 1rem;
+    background: linear-gradient(145deg, rgba(255, 159, 28, 0.08) 0%, rgba(46, 196, 182, 0.05) 100%);
+    border: 1px solid rgba(255, 159, 28, 0.15);
+    border-radius: 16px;
+    transition: all 0.3s var(--ease-smooth);
+    cursor: pointer;
+}
+
+.action-tile:hover {
+    background: linear-gradient(145deg, rgba(255, 159, 28, 0.15) 0%, rgba(46, 196, 182, 0.1) 100%);
+    border-color: var(--mango);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(255, 159, 28, 0.2);
+}
+
+.action-tile-label {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    display: block;
+}
+
+[data-theme="dark"] .action-tile {
+    background: linear-gradient(145deg, rgba(255, 159, 28, 0.12) 0%, rgba(46, 196, 182, 0.08) 100%);
+    border-color: rgba(255, 159, 28, 0.25);
+}
+
+[data-theme="dark"] .action-tile:hover {
+    background: linear-gradient(145deg, rgba(255, 159, 28, 0.22) 0%, rgba(46, 196, 182, 0.15) 100%);
+    border-color: var(--mango);
+    box-shadow: 0 8px 24px rgba(255, 159, 28, 0.3);
+}
+
+[data-theme="dark"] .action-tile-label {
+    color: #FAF3E0;
+}
+
 [data-theme="dark"] .stat-circle {
     background: var(--surface-warm);
     border: 1px solid rgba(255, 159, 28, 0.2);
@@ -622,7 +662,7 @@
 }
 
 .contribution-counter {
-    font-family: 'Fraunces', serif;
+    font-family: 'Playfair Display', serif;
     font-size: 1.25rem;
 }
 
