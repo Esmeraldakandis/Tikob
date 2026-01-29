@@ -1,0 +1,177 @@
+// docs/architecture/tikob-tf-cute.d2
+// TiKòb TensorFlow-style computational graph (D2)
+// Cute pastel style, grouped layers, rounded blocks, left-to-right layout
+
+tikob_tf_cute {
+  layout: lr
+  // Pastel color palette
+  pastel_purple = "#E6E0FF"
+  pastel_teal   = "#DFF7F0"
+  pastel_green  = "#E6FFE6"
+  pastel_yellow = "#FFF6D6"
+  pastel_pink   = "#FFE6F0"
+  stroke_color  = "#9A9A9A"
+
+  font: "Inter, Arial, sans-serif"
+  nodesep: 40
+  ranksep: 60
+
+  // Input Layer
+  group "Input Layer" {
+    style: rounded
+    fill: pastel_purple
+    stroke: stroke_color
+    padding: 20
+
+    node user_input {
+      label: "User Input\n(contributions, commands)"
+      fill: pastel_purple
+      radius: 12
+      width: 220
+    }
+
+    node bank_webhook {
+      label: "Bank Webhook\n(Plaid callbacks)"
+      fill: pastel_purple
+      radius: 12
+      width: 220
+    }
+
+    node scheduler {
+      label: "Scheduler\n(periodic jobs)"
+      fill: pastel_purple
+      radius: 12
+      width: 220
+    }
+  }
+
+  // Preprocessing Layer
+  group "Preprocessing Layer" {
+    style: rounded
+    fill: pastel_teal
+    stroke: stroke_color
+    padding: 18
+
+    node auth {
+      label: "Auth & Rate Limit\n(Flask-Talisman, Limiter)"
+      fill: pastel_teal
+      radius: 12
+      width: 260
+    }
+
+    node normalize {
+      label: "Input Normalization\n(Decimal normalize, ROUND_HALF_EVEN)"
+      fill: pastel_teal
+      radius: 12
+      width: 260
+    }
+
+    node fraud {
+      label: "Anti-Fraud Checks\n(heuristics, velocity)"
+      fill: pastel_teal
+      radius: 12
+      width: 260
+    }
+  }
+
+  // Core Logic Layer
+  group "Core Logic Layer" {
+    style: rounded
+    fill: pastel_green
+    stroke: stroke_color
+    padding: 18
+
+    node contribution {
+      label: "Contribution Processor\n(business validation, membership rules)"
+      fill: pastel_green
+      radius: 12
+      width: 300
+    }
+
+    node interest {
+      label: "Time-weighted Interest\n(Deterministic calculator)"
+      fill: pastel_green
+      radius: 12
+      width: 300
+    }
+
+    node reconcile {
+      label: "Reconciliation Engine\n(bank feed ↔ ledger)"
+      fill: pastel_green
+      radius: 12
+      width: 300
+    }
+  }
+
+  // Ledger Engine Layer
+  group "Ledger Engine Layer" {
+    style: rounded
+    fill: pastel_yellow
+    stroke: stroke_color
+    padding: 18
+
+    node event {
+      label: "LedgerEvent Creator\n(immutable, ordered events)"
+      fill: pastel_yellow
+      radius: 12
+      width: 320
+    }
+
+    node posting {
+      label: "LedgerPosting Generator\n(double-entry, balanced)"
+      fill: pastel_yellow
+      radius: 12
+      width: 320
+    }
+
+    node projection {
+      label: "Balance Projection\n(derived read models)"
+      fill: pastel_yellow
+      radius: 12
+      width: 320
+    }
+  }
+
+  // Output & Reporting Layer
+  group "Output & Reporting Layer" {
+    style: rounded
+    fill: pastel_pink
+    stroke: stroke_color
+    padding: 18
+
+    node receipt {
+      label: "Receipt & Notification\n(Email via SendGrid)"
+      fill: pastel_pink
+      radius: 12
+      width: 260
+    }
+
+    node tax {
+      label: "TaxReport Generator\n(1099-INT style)"
+      fill: pastel_pink
+      radius: 12
+      width: 260
+    }
+
+    node audit {
+      label: "Audit Exporter\n(JSONL, auditor exports)"
+      fill: pastel_pink
+      radius: 12
+      width: 260
+    }
+  }
+
+  // Flow connections (TensorBoard-like arrows)
+  // Inputs -> Preprocessing -> Core Logic -> Ledger -> Outputs
+  user_input -> auth -> normalize -> contribution -> event -> posting -> projection -> receipt
+  bank_webhook -> fraud -> reconcile -> event
+  scheduler -> interest -> event -> tax
+  posting -> audit
+
+  // Visual layout hints to keep layers distinct
+  { rank = same; user_input; bank_webhook; scheduler; }
+  { rank = same; auth; normalize; fraud; }
+  { rank = same; contribution; interest; reconcile; }
+  { rank = same; event; posting; projection; }
+  { rank = same; receipt; tax; audit; }
+}
