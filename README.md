@@ -88,7 +88,7 @@ tikob/
 │       └── test_ledger.py  # Financial logic tests
 └── README.md
 ```
-
+* **docs/architecture/**: Contains the [D2 Logic Blueprint](./docs/architecture/tikob-tf-cute.d2) and [DOT System Graph](./docs/architecture/tikob-tf-cute.dot) used to map the TiKòb computational flow.
 ## Core Database Models
 
 - **User** - Account management with reputation and XP
