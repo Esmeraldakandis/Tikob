@@ -88,6 +88,7 @@ tikob/
 │       └── test_ledger.py  # Financial logic tests
 └── README.md
 ```
+```mermaid
 graph TD
     subgraph "TiKòb Core Logic"
     A[Input Data] --> B{Processor}
