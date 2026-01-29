@@ -88,6 +88,7 @@ tikob/
 │       └── test_ledger.py  # Financial logic tests
 └── README.md
 ```
+
 ```mermaid
 graph TD
     subgraph "TiKòb Core Logic"
@@ -99,6 +100,7 @@ graph TD
 
     style C fill:#f9f,stroke:#333,stroke-width:4px
     style E fill:#00ff00,stroke:#333,stroke-width:2px
+
 ## Core Database Models
 
 - **User** - Account management with reputation and XP
